@@ -6,8 +6,10 @@ from database import get_db
 from models import MergeRequest as MergeRequestModel, User as UserModel, Repository as RepositoryModel
 from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus
 from auth import verify_clerk_token, contributor_required
+from ai_service import AIService
 
 router = APIRouter()
+ai_service = AIService()
 
 @router.post("/", response_model=MergeRequest)
 async def create_merge_request(
@@ -31,6 +33,29 @@ async def create_merge_request(
         **mr_data.dict(),
         author_id=current_user.id
     )
+    
+    # Perform AI validation
+    try:
+        ai_validation = await ai_service.validate_merge_request(
+            title=mr_data.title,
+            description=mr_data.description or "",
+            file_changes=[],  # Will be populated when files are added
+            source_repo_description=source_repo.description or "",
+            target_repo_description=target_repo.description or ""
+        )
+        
+        # Update merge request with AI validation results
+        db_mr.ai_validation_status = ai_validation["status"]
+        db_mr.ai_validation_score = ai_validation["score"]
+        db_mr.ai_validation_feedback = ai_validation["feedback"]
+        db_mr.ai_validation_concerns = ai_validation["concerns"]
+        db_mr.ai_validation_suggestions = ai_validation["suggestions"]
+        
+    except Exception as e:
+        # If AI validation fails, set status to needs_review
+        db_mr.ai_validation_status = "needs_review"
+        db_mr.ai_validation_feedback = f"AI validation failed: {str(e)}"
+    
     db.add(db_mr)
     db.commit()
     db.refresh(db_mr)
@@ -142,6 +167,19 @@ async def merge_request(
             detail="Only open merge requests can be merged"
         )
     
+    # Check AI validation status
+    if mr.ai_validation_status == "rejected":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot merge: AI validation rejected this request"
+        )
+    
+    if mr.ai_validation_status == "needs_review":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot merge: AI validation requires manual review"
+        )
+    
     # Update status to merged
     mr.status = "merged"
     db.commit()
@@ -181,3 +219,69 @@ async def close_merge_request(
     db.commit()
     
     return {"message": "Merge request closed successfully"}
+
+@router.post("/{mr_id}/validate")
+async def validate_merge_request(
+    mr_id: str,
+    current_user: UserModel = Depends(verify_clerk_token),
+    db: Session = Depends(get_db)
+):
+    """Trigger AI validation for a merge request"""
+    mr = db.query(MergeRequestModel).filter(MergeRequestModel.id == mr_id).first()
+    
+    if not mr:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Merge request not found"
+        )
+    
+    # Get source and target repositories
+    source_repo = db.query(RepositoryModel).filter(RepositoryModel.id == mr.source_repo_id).first()
+    target_repo = db.query(RepositoryModel).filter(RepositoryModel.id == mr.target_repo_id).first()
+    
+    if not source_repo or not target_repo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Source or target repository not found"
+        )
+    
+    # Get file changes for this merge request
+    file_changes = []
+    if hasattr(mr, 'file_changes'):
+        for change in mr.file_changes:
+            file_changes.append({
+                "change_type": change.change_type,
+                "file_path": change.file_path,
+                "diff_content": change.diff_content
+            })
+    
+    # Perform AI validation
+    try:
+        ai_validation = await ai_service.validate_merge_request(
+            title=mr.title,
+            description=mr.description or "",
+            file_changes=file_changes,
+            source_repo_description=source_repo.description or "",
+            target_repo_description=target_repo.description or ""
+        )
+        
+        # Update merge request with AI validation results
+        mr.ai_validation_status = ai_validation["status"]
+        mr.ai_validation_score = ai_validation["score"]
+        mr.ai_validation_feedback = ai_validation["feedback"]
+        mr.ai_validation_concerns = ai_validation["concerns"]
+        mr.ai_validation_suggestions = ai_validation["suggestions"]
+        
+        db.commit()
+        db.refresh(mr)
+        
+        return {
+            "message": "AI validation completed",
+            "validation_result": ai_validation
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI validation failed: {str(e)}"
+        )
