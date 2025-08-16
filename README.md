@@ -1,10 +1,9 @@
-# OSINT Hub - made for Google Gen AI Exchange Hackathon
+# OSINT Hub: for Google Gen AI Exchange Hackathon
 
-A Version control collaboration platform for OSINT investigations, powered by Google Gemini AI for intelligent merge validation.
 
-## 🎯 Project Overview
+### 🎯 Problem Statement: Generative AI for Demystifying Legal Documents
 
-OSINT Hub enables cybersecurity analysts, journalists, and OSINT researchers to collaboratively investigate, document, and refine intelligence in a secure, GitHub-like environment. The platform uses AI to ensure quality and trust by validating merge requests before they're accepted.
+OSINT Hub enables cybersecurity analysts, journalists, and OSINT researchers to collaboratively investigate, document, and refine intelligence in a secure, version controlled environment. The platform uses AI to ensure quality and trust by validating merge requests before they're accepted.
 
 ### Core Features
 
