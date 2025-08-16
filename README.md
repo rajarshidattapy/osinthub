@@ -1,4 +1,4 @@
-# OSINT Hub: for Google Gen AI Exchange Hackathon
+# OSINT Hub: Google Gen AI Exchange Hackathon
 
 
 ### 🎯 Problem Statement: Generative AI for Demystifying Legal Documents
