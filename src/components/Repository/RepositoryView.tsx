@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { 
   GitFork, 
-  Eye, 
-  Settings, 
+  Eye,  
   FileText, 
   Calendar,
   Users,
-  Download,
   Globe,
   Lock
 } from 'lucide-react';
