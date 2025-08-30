@@ -1,10 +1,10 @@
 // frontend/src/components/ui/hero-section.tsx
-
 "use client";
 import { SignInButton, SignedOut } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { RainbowButton } from '@/components/ui/gradient-button';
+import { Button } from "@/components/ui/gradient-button";
+import { BorderBeam } from "@/lib/border-beam";
 
 function ElegantShape({
   className,
@@ -102,18 +102,18 @@ export function HeroSection() {
         <ElegantShape
           delay={0.3}
           width={600}
-          height={140}
-          rotate={12}
+          height={120}
+          rotate={-26}
           gradient="from-blue-500/[0.15]"
-          className="left-[-10%] top-[15%]"
+          className="left-[-10%] bottom-[5%]"
         />
         <ElegantShape
-          delay={0.5}
-          width={500}
+          delay={0.3}
+          width={600}
           height={120}
-          rotate={-15}
+          rotate={-27}
           gradient="from-gray-500/[0.1]"
-          className="right-[-5%] top-[70%]"
+          className="right-[-10%] top-[20%]"
         />
       </div>
 
@@ -142,21 +142,36 @@ export function HeroSection() {
             initial="hidden"
             animate="visible"
           >
-            
-
             <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-10 leading-relaxed tracking-wide max-w-2xl mx-auto">
               OSINT Hub transforms overwhelming investigative data into clear,
               traceable insights. Collaborate securely, validate with AI, and
               build knowledge together.
             </p>
+          <motion.div
+            custom={5} 
+            variants={fadeUpVariants}
+            initial="hidden"
+            animate="visible"
+          >
             <SignedOut>
               <SignInButton mode="modal">
-                <RainbowButton variant="variant">Start a Case</RainbowButton>
+                <Button className="relative overflow-hidden" size="lg" variant="outline">
+      Start your Case
+      <BorderBeam
+        size={40}
+        initialOffset={20}
+        className="from-transparent via-yellow-500 to-transparent"
+        transition={{
+          type: "spring",
+          stiffness: 60,
+          damping: 20,
+        }}
+      />
+    </Button>
               </SignInButton>
             </SignedOut>
           </motion.div>
-
-          {/* CTA Button will be added here via SignedOut/SignInButton */}
+          </motion.div>
         </div>
       </div>
 

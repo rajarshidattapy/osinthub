@@ -30,9 +30,12 @@ export function LandingNavbar() {
             whileHover={{ rotate: 10, scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
-            <Link to="/" className="flex items-center space-x-2">
-              <GitFork className="w-8 h-8 text-indigo-400 drop-shadow-md" />
-<span className="text-xl font-bold tracking-wide hidden sm:block text-white">
+            <Link to="/" className="flex items-center space-x-3">
+<img
+    src="/assets/logo1.png"   // make sure path is correct
+    alt="OSINT Hub Logo"
+    className="w-10 h-8 drop-shadow-md"
+  /><span className="text-xl font-bold tracking-wide hidden sm:block text-white">
   OSINT Hub
 </span>
 

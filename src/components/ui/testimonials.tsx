@@ -12,8 +12,8 @@ const testimonials = [
       "OSINT Hub has fundamentally changed how our team collaborates on threat intelligence. The version control and AI validation are game-changers for accuracy.",
     name: "A. Kim",
     title: "Lead Threat Analyst, CyberSec Firm",
-    avatar: "assets/images.jpeg",
-    position: { top: "20%", left: "15%" },
+    avatar: "assets/person2.webp",
+    position: { top: "30%", left: "15%" },
   },
   {
     id: 1,
@@ -22,7 +22,7 @@ const testimonials = [
     name: "Maria Santos",
     title: "Senior Investigative Journalist",
     avatar: "/person2.webp",
-    position: { bottom: "15%", left: "20%" },
+    position: { bottom: "15%", left: "30%" },
   },
   {
     id: 2,
@@ -31,7 +31,7 @@ const testimonials = [
     name: "Dr. James Chen",
     title: "Research Director, Digital Forensics Lab",
     avatar: "assets/images.jpeg",
-    position: { top: "15%", right: "20%" },
+    position: { top: "15%", right: "40%" },
   },
   {
     id: 3,
@@ -40,7 +40,7 @@ const testimonials = [
     name: "Sarah Mitchell",
     title: "OSINT Specialist, Government Agency",
     avatar: "assets/testimonial1.jpg",
-    position: { top: "30%", right: "10%" },
+    position: { top: "30%", right: "15%" },
   },
   {
     id: 4,
@@ -67,8 +67,8 @@ const InteractiveAvatar = ({
   onClick: () => void;
   index: number;
 }) => {
-  const sizeClass =
-    index === 1 || index === 2 || index === 4 ? "!w-12 !h-12" : "w-14 h-14";
+  const sizeClass = "w-20 h-20 sm:w-24 sm:h-24"; 
+
 
   return (
     <motion.img

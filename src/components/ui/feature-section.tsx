@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-// Your defined features for OSINT Hub
 const features = [
   {
     title: "Case Repositories",
@@ -60,7 +59,7 @@ export function FeaturesSection() {
               </p>
           </motion.div>
 
-          {/* Features Grid */}
+          {/* Features Grid Container */}
           <div className="mt-16">
             {/* Top Row - 3 cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 border-neutral-800">
@@ -94,7 +93,7 @@ export function FeaturesSection() {
   );
 }
 
-// The Feature sub-component with corrected styling
+// The Feature sub-component with the shadow effect re-integrated
 const Feature = ({
   title,
   description,
@@ -118,6 +117,14 @@ const Feature = ({
         isNotFirstInRow && "lg:border-l"
       )}
     >
+        {/* --- THIS IS THE NEW GLOWING SHADOW EFFECT --- */}
+        <div 
+            className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 transition-opacity duration-300 pointer-events-none"
+            style={{
+                background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15), transparent 80%)"
+            }}
+        />
+
       {/* Content wrapper */}
       <div className="flex flex-col items-center text-center relative z-10 px-6">
         {/* Icon */}
