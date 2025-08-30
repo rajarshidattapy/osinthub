@@ -73,11 +73,11 @@ export function FooterSection() {
         {/* CTA Header */}
         <div className="text-center max-w-2xl mx-auto mb-20">
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 flex items-center justify-center rounded-2xl">
+            <div className="w-30 h-16 flex items-center justify-center rounded-2xl">
               <img
     src="/assets/logo1.png"   // make sure path is correct
     alt="OSINT Hub Logo"
-    className="w-15 h-14 drop-shadow-md"
+    className="w-20 h-16 drop-shadow-md"
   />
             </div>
           </div>
