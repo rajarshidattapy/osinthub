@@ -5,7 +5,10 @@ import { HeroSection } from '@/components/ui/hero-section';
 import { SignInButton, SignedOut } from '@clerk/clerk-react';
 import { ProductShowcaseSection } from '@/components/ui/product-showcase-section';
 import { FeaturesSection } from '@/components/ui/feature-section';
-import {UseCasesSection, useCUseCasesSectionase} from '@/components/ui/use-case';
+import {UseCasesSection} from '@/components/ui/use-case';
+import {StatsSection} from '@/components/ui/stats-section';
+import {TestimonialsSection }from '@/components/ui/testimonials';
+import {FooterSection} from '@/components/ui/footer';
 export function LandingPage() {
     return (
         <div className="bg-[#0D1117]"> 
@@ -27,6 +30,9 @@ export function LandingPage() {
                 <ProductShowcaseSection />
                  <FeaturesSection />
                 <UseCasesSection/>
+                <StatsSection/>
+                <TestimonialsSection/>
+                <FooterSection/>
             </main>
         </div>
     );
