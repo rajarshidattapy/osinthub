@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, GitPullRequest, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, GitPullRequest, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { MergeRequestCard } from './MergeRequestCard';
 import { mergeRequests } from '../../data/mockData';
 import { MergeRequest } from '../../types';

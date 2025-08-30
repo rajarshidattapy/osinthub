@@ -9,7 +9,7 @@ interface MergeRequestCardProps {
 
 export const MergeRequestCard: React.FC<MergeRequestCardProps> = ({ mergeRequest, onSelect }) => {
   const getStatusBadge = () => {
-    const { status, aiValidation } = mergeRequest;
+    const { status } = mergeRequest;
     
     if (status === 'merged') {
       return (
