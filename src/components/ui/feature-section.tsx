@@ -60,18 +60,41 @@ export function FeaturesSection() {
               </p>
           </motion.div>
 
-          {/* New Features Grid with Hover Effects */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative z-10">
-            {features.map((feature, index) => (
-              <Feature key={feature.title} {...feature} index={index} />
-            ))}
+          {/* Features Grid */}
+          <div className="mt-16">
+            {/* Top Row - 3 cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 border-neutral-800">
+              {features.slice(0, 3).map((feature, index) => (
+                <Feature 
+                  key={feature.title} 
+                  {...feature} 
+                  index={index}
+                  isTopRow={true}
+                  totalInRow={3}
+                />
+              ))}
+            </div>
+            
+            {/* Bottom Row - 2 cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 border-neutral-800 border-t">
+              {features.slice(3, 5).map((feature, index) => (
+                <Feature 
+                  key={feature.title} 
+                  {...feature} 
+                  index={index}
+                  isTopRow={false}
+                  totalInRow={2}
+                />
+              ))}
+            </div>
           </div>
+
       </div>
     </section>
   );
 }
 
-// The Feature sub-component with the new styling
+// The Feature sub-component with corrected styling
 const Feature = ({
   title,
   description,
@@ -82,45 +105,36 @@ const Feature = ({
   description: string;
   icon: React.ReactNode;
   index: number;
+  isTopRow: boolean;
+  totalInRow: number;
 }) => {
+  const isNotFirstInRow = index > 0;
+
   return (
-   <div
-  className={cn(
-    "flex flex-col py-10 relative group/feature border-neutral-800 items-center text-center", 
-    // Adapted border logic for a 3-column grid
-    "border-t",
-    (index % 3 === 0) && "lg:border-l",
-    (index % 3 !== 2) && "lg:border-r"
-  )}
->
-  {/* Top row hover effect */}
-  {index < 3 && (
-    <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-t from-neutral-800 to-transparent pointer-events-none" />
-  )}
-  
-  {/* Bottom row hover effect */}
-  {index >= 3 && (
-    <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-b from-neutral-800 to-transparent pointer-events-none" />
-  )}
+    <div
+      className={cn(
+        "flex flex-col py-10 relative group/feature items-center text-center border-neutral-800",
+        // Left border for all except first in row
+        isNotFirstInRow && "lg:border-l"
+      )}
+    >
+      {/* Content wrapper */}
+      <div className="flex flex-col items-center text-center relative z-10 px-6">
+        {/* Icon */}
+        <div className="mb-4">{icon}</div>
 
-  {/* Content wrapper */}
-  <div className="flex flex-col items-center text-center relative z-10">
-    {/* Icon */}
-    <div className="mb-4">{icon}</div>
+        {/* Title */}
+        <div className="text-lg font-bold mb-2">
+          <span className="group-hover/feature:text-blue-400 transition duration-200 inline-block text-neutral-100">
+            {title}
+          </span>
+        </div>
 
-    {/* Title */}
-    <div className="text-lg font-bold mb-2">
-      <span className="group-hover/feature:text-blue-400 transition duration-200 inline-block text-neutral-100">
-        {title}
-      </span>
+        {/* Description */}
+        <p className="text-sm text-neutral-300 max-w-xs">
+          {description}
+        </p>
+      </div>
     </div>
-
-    {/* Description */}
-    <p className="text-sm text-neutral-300 max-w-xs">
-      {description}
-    </p>
-  </div>
-</div>
-
   );
 };

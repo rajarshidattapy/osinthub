@@ -1,7 +1,7 @@
 // frontend/src/components/ui/use-cases-section.tsx
 
-import React, { useState, useEffect } from 'react';
-import { ChevronRight, Shield, Newspaper, Building2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronRight, Shield} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Our defined Use Cases for OSINT Hub

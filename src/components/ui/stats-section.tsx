@@ -19,9 +19,6 @@ export function StatsSection() {
                 {/* Header */}
                 <div className="text-center">
                     <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
-                        Trusted by the Best, 
-                    </h2>
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
                         Proven by the Numbers
                     </h2>
                     <p className="text-gray-400 text-lg max-w-3xl mx-auto">
@@ -32,16 +29,33 @@ export function StatsSection() {
                 {/* Statistics Grid */}
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Main Stat Card */}
-                    <motion.div 
-                        className="md:col-span-3 bg-gradient-to-br from-blue-600/30 to-gray-900/30 border border-white/10 rounded-xl p-8 text-center"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <p className="text-6xl font-bold text-white">1,000+</p>
-                        <p className="mt-2 text-lg text-blue-300">Secure Investigations Launched</p>
-                    </motion.div>
+<motion.div
+  className="md:col-span-3 border border-white/10 rounded-xl p-8 text-center relative overflow-hidden"
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.6 }}
+  style={{
+    background:
+      "linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(4, 4, 99, 1) 35%, rgba(5, 170, 179, 1) 54%, rgba(2, 232, 98, 1) 78%, rgba(0, 212, 255, 1) 89%)",
+  }}
+>
+  {/* Optional radial glow overlay */}
+  <div
+    className="absolute inset-0 z-0"
+    style={{
+      background:
+        "radial-gradient(ellipse 80% 50% at 50% 120%, rgba(47, 129, 247, 0.15), transparent 80%)",
+    }}
+  />
+
+  {/* Content */}
+  <div className="relative z-10">
+    <p className="text-6xl font-bold text-white">1,000+</p>
+    <p className="mt-2 text-lg text-white">Secure Investigations Launched</p>
+  </div>
+</motion.div>
+
 
                     {/* Supporting Stats */}
                     <motion.div 

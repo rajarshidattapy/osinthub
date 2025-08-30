@@ -13,6 +13,7 @@
     "@clerk/clerk-react": "^5.42.1",
     "@clerk/themes": "^2.4.10",
     "@prisma/client": "^6.14.0",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tabler/icons-react": "^3.34.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
