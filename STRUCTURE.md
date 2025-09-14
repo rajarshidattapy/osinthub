@@ -31,6 +31,7 @@ This document provides detailed documentation of the backend and frontend code a
   - `FileChange`: Detailed change tracking
   - `Comment`: Discussion and feedback
   - `AuditEntry`: Complete audit trail
+  - `RepositoryCollaborator`: Manage repository access
 
 #### `auth.py` - Authentication & Authorization
 - **Purpose**: JWT token validation and role-based access control
@@ -55,10 +56,15 @@ This document provides detailed documentation of the backend and frontend code a
   - `POST /` - Create new repository
   - `GET /` - List repositories with filters
   - `GET /{id}` - Get repository details
-  - `PUT /{id}` - Update repository
+  - `PUT /{id}` - Update repository (owner only)
   - `DELETE /{id}` - Delete repository
   - `POST /{id}/fork` - Fork repository
   - `POST /{id}/collaborators` - Manage collaborators
+- **Actual Endpoints**:
+  - `PUT /{repo_id}`: Update repository (owner only)
+  - Owner-based access control implemented
+  - Name uniqueness validation per owner
+  - Input validation using Pydantic schemas
 
 #### `routers/merge_requests.py`
 - **Endpoints**:
@@ -78,6 +84,10 @@ This document provides detailed documentation of the backend and frontend code a
   - `PUT /{id}` - Update file content
   - `DELETE /{id}` - Delete file
   - `POST /{id}/versions` - Create file version
+- **Additional Details**:
+  - Owner/collaborator permission checks
+  - File size tracking
+  - Content-based file updates
 
 #### `routers/users.py`
 - **Endpoints**:
@@ -94,6 +104,18 @@ This document provides detailed documentation of the backend and frontend code a
 - **File Schemas**: File operations and metadata
 - **User Schemas**: User management and profiles
 - **Validation**: Pydantic validation rules and constraints
+- **Implemented Models**:
+  - `AIValidation`: Status, score, feedback, concerns
+  - `FileChangeBase`: File path, change type, diff metrics  
+  - `MergeRequestUpdate`: Title, description, status updates
+  - `RepositoryFile`: Complete file metadata and content
+
+### Database Integration
+- **Alembic Migrations**:
+  - UUID-based primary keys
+  - Proper foreign key constraints
+  - Timestamp columns for auditing
+  - JSON fields for AI validation data
 
 ## 🎨 Frontend Architecture
 
