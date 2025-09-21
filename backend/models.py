@@ -12,7 +12,7 @@ class User(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     clerk_id = Column(String, unique=True, nullable=False)
-    username = Column(String, unique=True, nullable=False)
+    username = Column(String, unique=True, nullable=True)
     email = Column(String, unique=True, nullable=False)
     avatar = Column(String)
     role = Column(String, default="contributor")  # admin, analyst, contributor, viewer

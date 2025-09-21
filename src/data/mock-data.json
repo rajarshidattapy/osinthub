@@ -1,0 +1,133 @@
+{
+  "ingestVolume": [
+    { "date": "2025-07-01", "web": 120, "social": 80, "darkweb": 30 },
+    { "date": "2025-07-02", "web": 140, "social": 85, "darkweb": 28 },
+    { "date": "2025-07-03", "web": 160, "social": 78, "darkweb": 35 },
+    { "date": "2025-07-04", "web": 170, "social": 90, "darkweb": 40 },
+    { "date": "2025-07-05", "web": 200, "social": 120, "darkweb": 60 },
+    { "date": "2025-07-06", "web": 210, "social": 115, "darkweb": 55 },
+    { "date": "2025-07-07", "web": 220, "social": 118, "darkweb": 58 },
+    { "date": "2025-07-08", "web": 230, "social": 130, "darkweb": 62 },
+    { "date": "2025-07-09", "web": 240, "social": 140, "darkweb": 70 },
+    { "date": "2025-07-10", "web": 260, "social": 150, "darkweb": 72 }
+  ],
+  "tagTrends": [
+    { "date": "2025-07-01", "tag": "APT-29", "value": 12 },
+    { "date": "2025-07-01", "tag": "phishing", "value": 28 },
+    { "date": "2025-07-01", "tag": "malware", "value": 22 },
+    { "date": "2025-07-01", "tag": "crypto", "value": 9 },
+    { "date": "2025-07-10", "tag": "APT-29", "value": 20 },
+    { "date": "2025-07-10", "tag": "phishing", "value": 42 },
+    { "date": "2025-07-10", "tag": "malware", "value": 35 },
+    { "date": "2025-07-10", "tag": "crypto", "value": 13 }
+  ],
+  "caseFunnel": { "new": 28, "inProgress": 46, "review": 19, "closed": 72 },
+  "investigatorPerf": [
+    {
+      "id": "u1",
+      "name": "A. Kim",
+      "avatar": "/placeholder.svg?height=24&width=24",
+      "closedCount": 18,
+      "avgTimeDays": 3.2
+    },
+    {
+      "id": "u2",
+      "name": "J. Patel",
+      "avatar": "/placeholder.svg?height=24&width=24",
+      "closedCount": 15,
+      "avgTimeDays": 3.8
+    },
+    {
+      "id": "u3",
+      "name": "S. Rivera",
+      "avatar": "/placeholder.svg?height=24&width=24",
+      "closedCount": 12,
+      "avgTimeDays": 4.1
+    },
+    {
+      "id": "u4",
+      "name": "L. Zhang",
+      "avatar": "/placeholder.svg?height=24&width=24",
+      "closedCount": 10,
+      "avgTimeDays": 4.5
+    }
+  ],
+  "repoSparks": [
+    { "repoId": "r1", "sparkline": [2, 3, 4, 3, 5, 6, 5, 7, 6, 8, 7, 9] },
+    { "repoId": "r2", "sparkline": [9, 8, 7, 8, 6, 5, 6, 7, 5, 6, 7, 8] },
+    { "repoId": "r3", "sparkline": [1, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7] },
+    { "repoId": "r4", "sparkline": [5, 4, 6, 5, 7, 6, 8, 7, 9, 8, 10, 9] },
+    { "repoId": "r5", "sparkline": [3, 4, 5, 6, 5, 4, 5, 6, 7, 6, 7, 8] }
+  ],
+  "repositories": [
+    {
+      "id": "r1",
+      "name": "APT-29 OSINT",
+      "description": "Collection focused on APT-29 activity and infrastructure.",
+      "tags": ["APT-29", "malware", "phishing"],
+      "followers": 128,
+      "updated": "2h ago",
+      "caseCount": 12,
+      "sparkline": [2, 3, 4, 3, 5, 6, 5, 7, 6, 8],
+      "collaborators": [
+        { "id": "u1", "avatar": "/placeholder.svg?height=24&width=24" },
+        { "id": "u2", "avatar": "/placeholder.svg?height=24&width=24" },
+        { "id": "u3", "avatar": "/placeholder.svg?height=24&width=24" }
+      ]
+    },
+    {
+      "id": "r2",
+      "name": "Crypto Scams",
+      "description": "Darkweb and social media crypto scam tracking.",
+      "tags": ["crypto", "darkweb"],
+      "followers": 96,
+      "updated": "1d ago",
+      "caseCount": 8,
+      "sparkline": [3, 2, 5, 4, 6, 5, 7, 8, 6, 7],
+      "collaborators": [
+        { "id": "u4", "avatar": "/placeholder.svg?height=24&width=24" },
+        { "id": "u5", "avatar": "/placeholder.svg?height=24&width=24" }
+      ]
+    },
+    {
+      "id": "r3",
+      "name": "Phishing Kits",
+      "description": "Repository of known phishing kits and indicators.",
+      "tags": ["phishing"],
+      "followers": 74,
+      "updated": "4h ago",
+      "caseCount": 10,
+      "sparkline": [1, 2, 1, 3, 2, 4, 3, 5, 4, 6],
+      "collaborators": [
+        { "id": "u2", "avatar": "/placeholder.svg?height=24&width=24" },
+        { "id": "u6", "avatar": "/placeholder.svg?height=24&width=24" }
+      ]
+    }
+  ],
+  "activity": [
+    {
+      "id": "a1",
+      "type": "upload",
+      "actor": "A. Kim",
+      "when": "12m ago",
+      "text": "uploaded 54 artifacts to APT-29 OSINT"
+    },
+    { "id": "a2", "type": "merge", "actor": "J. Patel", "when": "1h ago", "text": "opened MR #42 in Phishing Kits" },
+    {
+      "id": "a3",
+      "type": "assign",
+      "actor": "L. Zhang",
+      "when": "2h ago",
+      "text": "assigned case CF-103 to S. Rivera"
+    },
+    {
+      "id": "a4",
+      "type": "upload",
+      "actor": "S. Rivera",
+      "when": "3h ago",
+      "text": "added 12 domains to Crypto Scams"
+    },
+    { "id": "a5", "type": "merge", "actor": "A. Kim", "when": "5h ago", "text": "merged MR #39 in APT-29 OSINT" },
+    { "id": "a6", "type": "assign", "actor": "J. Patel", "when": "6h ago", "text": "assigned case CF-098 to L. Zhang" }
+  ]
+}

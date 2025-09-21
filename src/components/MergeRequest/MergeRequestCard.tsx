@@ -13,26 +13,26 @@ export const MergeRequestCard: React.FC<MergeRequestCardProps> = ({ mergeRequest
     
     if (status === 'merged') {
       return (
-        <div className="flex items-center space-x-1 bg-purple-900 text-purple-200 px-2 py-1 rounded-full text-xs">
-          <CheckCircle className="w-3 h-3" />
-          <span>Merged</span>
+        <div className="status-success">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Merged
         </div>
       );
     }
     
     if (status === 'closed') {
       return (
-        <div className="flex items-center space-x-1 bg-red-900 text-red-200 px-2 py-1 rounded-full text-xs">
-          <XCircle className="w-3 h-3" />
-          <span>Closed</span>
+        <div className="status-danger">
+          <XCircle className="w-3 h-3 mr-1" />
+          Closed
         </div>
       );
     }
     
     return (
-      <div className="flex items-center space-x-1 bg-green-900 text-green-200 px-2 py-1 rounded-full text-xs">
-        <Clock className="w-3 h-3" />
-        <span>Open</span>
+      <div className="status-info">
+        <Clock className="w-3 h-3 mr-1" />
+        Open
       </div>
     );
   };
@@ -43,30 +43,30 @@ export const MergeRequestCard: React.FC<MergeRequestCardProps> = ({ mergeRequest
     switch (aiValidation.status) {
       case 'approved':
         return (
-          <div className="flex items-center space-x-1 bg-green-900 text-green-200 px-2 py-1 rounded-full text-xs">
-            <CheckCircle className="w-3 h-3" />
-            <span>AI Approved ({Math.round(aiValidation.score * 100)}%)</span>
+          <div className="status-success">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            AI Approved ({Math.round(aiValidation.score * 100)}%)
           </div>
         );
       case 'rejected':
         return (
-          <div className="flex items-center space-x-1 bg-red-900 text-red-200 px-2 py-1 rounded-full text-xs">
-            <XCircle className="w-3 h-3" />
-            <span>AI Rejected</span>
+          <div className="status-danger">
+            <XCircle className="w-3 h-3 mr-1" />
+            AI Rejected
           </div>
         );
       case 'needs_review':
         return (
-          <div className="flex items-center space-x-1 bg-yellow-900 text-yellow-200 px-2 py-1 rounded-full text-xs">
-            <AlertTriangle className="w-3 h-3" />
-            <span>Needs Review</span>
+          <div className="status-warning">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            Needs Review
           </div>
         );
       default:
         return (
-          <div className="flex items-center space-x-1 bg-gray-700 text-gray-300 px-2 py-1 rounded-full text-xs">
-            <Clock className="w-3 h-3" />
-            <span>AI Pending</span>
+          <div className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-800 text-gray-300">
+            <Clock className="w-3 h-3 mr-1" />
+            AI Pending
           </div>
         );
     }
@@ -85,24 +85,24 @@ export const MergeRequestCard: React.FC<MergeRequestCardProps> = ({ mergeRequest
 
   return (
     <div 
-      className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-gray-600 transition-colors cursor-pointer"
+      className="card-hover p-6 cursor-pointer"
       onClick={() => onSelect(mergeRequest)}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2">
-            <h3 className="text-lg font-semibold text-white hover:text-blue-400 transition-colors">
+          <div className="flex items-center flex-wrap gap-3 mb-2">
+            <h3 className="repo-title hover:text-blue-400 transition-colors">
               {mergeRequest.title}
             </h3>
             {getStatusBadge()}
             {getAIValidationBadge()}
           </div>
           
-          <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+          <p className="repo-description">
             {mergeRequest.description}
           </p>
           
-          <div className="flex items-center space-x-4 text-sm text-gray-400">
+          <div className="repo-meta">
             <div className="flex items-center space-x-1">
               <User className="w-3 h-3" />
               <span>{mergeRequest.author.username}</span>
@@ -128,8 +128,8 @@ export const MergeRequestCard: React.FC<MergeRequestCardProps> = ({ mergeRequest
       </div>
       
       {/* Change Summary */}
-      <div className="flex items-center space-x-4 text-sm bg-gray-700 rounded p-3">
-        <span className="text-gray-300">
+      <div className="flex items-center space-x-4 text-sm p-3 rounded-md" style={{backgroundColor: 'var(--bg-2)'}}>
+        <span className="text-muted">
           {mergeRequest.changes.length} file{mergeRequest.changes.length !== 1 ? 's' : ''} changed
         </span>
         <span className="text-green-400">
@@ -142,7 +142,7 @@ export const MergeRequestCard: React.FC<MergeRequestCardProps> = ({ mergeRequest
       
       {/* AI Feedback Preview */}
       {mergeRequest.aiValidation.feedback && (
-        <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded">
+        <div className="mt-4 p-3 rounded-md" style={{backgroundColor: 'rgba(88, 166, 255, 0.1)', border: '1px solid rgba(88, 166, 255, 0.3)'}}>
           <div className="text-xs font-medium text-blue-300 mb-1">AI Analysis</div>
           <p className="text-blue-200 text-sm line-clamp-2">
             {mergeRequest.aiValidation.feedback}
