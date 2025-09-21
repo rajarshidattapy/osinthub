@@ -216,6 +216,84 @@ class ApiService {
     if (!response.ok) throw new Error('Failed to fetch graph statistics');
     return response.json();
   }
+
+  // Chatbot
+  async queryRepositoryChatbot(
+    question: string,
+    repository: any,
+    commits: any[],
+    files: any[],
+    getToken: () => Promise<string | null>,
+    onChunk?: (chunk: string) => void
+  ) {
+    // Use streaming endpoint for better UX
+    try {
+      const headers = await this.getAuthHeaders(getToken);
+      const response = await fetch(`${API_BASE_URL}/chatbot/query-stream`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          question,
+          repository,
+          commits,
+          files
+        }),
+      });
+      
+      if (response.ok && onChunk) {
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.content) {
+                    fullResponse += data.content;
+                    onChunk(data.content);
+                  }
+                  if (data.done) {
+                    return { answer: fullResponse };
+                  }
+                } catch (e) {
+                  // Ignore parsing errors
+                }
+              }
+            }
+          }
+        }
+        return { answer: fullResponse };
+      }
+    } catch (error) {
+      console.log('Streaming endpoint failed, trying simple endpoint');
+    }
+    
+    // Fallback to simple endpoint without authentication
+    const response = await fetch(`${API_BASE_URL}/chatbot/query-simple`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question,
+        repository,
+        commits,
+        files
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to get chatbot response');
+    return response.json();
+  }
 }
 
 export const apiService = new ApiService();
@@ -227,5 +305,7 @@ export const useApiService = () => {
   return {
     ...apiService,
     getToken,
+    queryRepositoryChatbot: (question: string, repository: any, commits: any[], files: any[], getToken: () => Promise<string | null>, onChunk?: (chunk: string) => void) => 
+      apiService.queryRepositoryChatbot(question, repository, commits, files, getToken, onChunk),
   };
 };

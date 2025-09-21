@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from database import get_db, engine
 from models import Base
-from routers import repositories, merge_requests, users, files, search, upload_file, webhooks, commit_graph
+from routers import repositories, merge_requests, users, files, search, upload_file, webhooks, commit_graph, chatbot
 from auth import verify_clerk_token
 
 load_dotenv()
@@ -42,6 +42,7 @@ app.include_router(search.router, prefix="/api", tags=["search"])
 app.include_router(upload_file.router, prefix="/api", tags=["upload"])
 app.include_router(webhooks.router, tags=["webhooks"])
 app.include_router(commit_graph.router, prefix="/api", tags=["commit-graph"])
+app.include_router(chatbot.router, prefix="/api", tags=["chatbot"])
 
 @app.get("/")
 async def root():

@@ -1,6 +1,6 @@
 import google.generativeai as genai
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, AsyncGenerator
 from dotenv import load_dotenv
 from document_parser import DocumentParser, DocumentChange
 import json
@@ -293,3 +293,268 @@ class EnhancedAIService:
             if keyword in text.lower():
                 indicators.append(keyword)
         return indicators
+
+    async def generate_repository_chatbot_response(
+        self,
+        question: str,
+        repository_data: Dict,
+        commits_data: List[Dict],
+        files_data: List[Dict]
+    ) -> str:
+        """
+        Generate chatbot response about repository content using Gemini
+        """
+        try:
+            # Prepare repository context with more detailed information
+            repo_context = f"""
+            REPOSITORY OVERVIEW:
+            ===================
+            Name: {repository_data.get('name', 'Unknown')}
+            Description: {repository_data.get('description', 'No description')}
+            Owner: {repository_data.get('owner', 'Unknown')}
+            Created: {repository_data.get('createdAt', 'Unknown')}
+            Last Updated: {repository_data.get('updatedAt', 'Unknown')}
+            
+            COMMIT HISTORY ({len(commits_data)} commits):
+            ==========================================
+            """
+            
+            # Add detailed commit information
+            for i, commit in enumerate(commits_data[:15]):  # Show more commits
+                author_info = commit.get('author', {})
+                author_name = author_info.get('username', 'Unknown') if isinstance(author_info, dict) else str(author_info)
+                
+                repo_context += f"""
+            {i+1}. Commit: {commit.get('sha', 'Unknown')[:8]}
+               Message: {commit.get('message', 'No message')}
+               Author: {author_name}
+               Date: {commit.get('timestamp', 'Unknown')}
+               Parent: {commit.get('parent_sha', 'None')[:8] if commit.get('parent_sha') else 'None'}
+               """
+            
+            # Add detailed file information with content analysis
+            repo_context += f"""
+            
+            FILE STRUCTURE ({len(files_data)} files):
+            ======================================
+            """
+            
+            # Group files by directory for better structure understanding
+            file_structure = {}
+            for file in files_data:
+                path = file.get('path', 'Unknown')
+                dir_path = '/'.join(path.split('/')[:-1]) if '/' in path else 'root'
+                if dir_path not in file_structure:
+                    file_structure[dir_path] = []
+                file_structure[dir_path].append(file)
+            
+            for dir_path, files in file_structure.items():
+                repo_context += f"""
+            📁 {dir_path if dir_path != 'root' else '/'}:
+            """
+                for file in files:
+                    file_type = file.get('type', 'Unknown')
+                    file_size = file.get('size', 0)
+                    file_content = file.get('content', '')
+                    
+                    repo_context += f"""
+               📄 {file.get('name', 'Unknown')} ({file_type}, {file_size} bytes)
+                  Last Modified: {file.get('lastModified', 'Unknown')}
+                  """
+                    
+                    # Add content analysis for different file types
+                    if file_content:
+                        if file_type == 'json':
+                            try:
+                                import json
+                                json_data = json.loads(file_content)
+                                if isinstance(json_data, dict):
+                                    repo_context += f"""
+                  JSON Structure: {list(json_data.keys())}
+                  """
+                                    # Add specific content for JSON files
+                                    if 'domains' in json_data:
+                                        domains = json_data.get('domains', [])
+                                        repo_context += f"""
+                  Contains {len(domains)} domains
+                  """
+                                    if 'ip_addresses' in json_data:
+                                        ips = json_data.get('ip_addresses', [])
+                                        repo_context += f"""
+                  Contains {len(ips)} IP addresses
+                  """
+                            except:
+                                pass
+                        
+                        elif file_type == 'markdown':
+                            # Extract key sections from markdown
+                            lines = file_content.split('\n')
+                            headers = [line for line in lines if line.startswith('#')]
+                            if headers:
+                                repo_context += f"""
+                  Sections: {', '.join([h.strip('# ').strip() for h in headers[:5]])}
+                  """
+                        
+                        # Add content preview for all text files
+                        if file_type in ['txt', 'md', 'json', 'py', 'js', 'ts', 'csv']:
+                            content_preview = file_content[:800]  # Increased preview size
+                            repo_context += f"""
+                  Content Preview:
+                  {content_preview}
+                  """
+            
+            # Add repository statistics
+            total_files = len(files_data)
+            total_commits = len(commits_data)
+            file_types = {}
+            for file in files_data:
+                file_type = file.get('type', 'unknown')
+                file_types[file_type] = file_types.get(file_type, 0) + 1
+            
+            repo_context += f"""
+            
+            REPOSITORY STATISTICS:
+            =====================
+            Total Files: {total_files}
+            Total Commits: {total_commits}
+            File Types: {dict(file_types)}
+            """
+            
+            # Create the enhanced prompt for Gemini
+            prompt = f"""
+            You are an expert repository assistant. Analyze the repository data below and answer the user's question with detailed, accurate information.
+
+            CRITICAL RULES:
+            1. ONLY use information explicitly provided in the repository data below
+            2. If information is not available, clearly state "I don't have that information from this repo."
+            3. Be thorough but concise in your analysis
+            4. Format code snippets, file paths, and technical details properly
+            5. Use clear, professional language
+            6. When showing lists (commits, files, functions), format them clearly with proper numbering
+            7. Analyze file contents and structure when relevant to the question
+            8. Provide specific details like file sizes, dates, and technical information when available
+
+            REPOSITORY DATA:
+            {repo_context}
+
+            USER QUESTION: {question}
+
+            Provide a comprehensive, accurate answer based solely on the repository information above. Include specific details, file contents, commit information, and technical analysis as relevant to the question.
+            """
+
+            response = await self.model.generate_content_async(prompt)
+            return response.text.strip()
+
+        except Exception as e:
+            return f"I'm sorry, I encountered an error while processing your question: {str(e)}"
+
+    async def generate_repository_chatbot_response_stream(
+        self,
+        question: str,
+        repository_data: Dict,
+        commits_data: List[Dict],
+        files_data: List[Dict]
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate streaming chatbot response about repository content using Gemini
+        """
+        try:
+            # Prepare concise repository context
+            repo_context = f"""
+            REPOSITORY: {repository_data.get('name', 'Unknown')}
+            DESCRIPTION: {repository_data.get('description', 'No description')}
+            OWNER: {repository_data.get('owner', 'Unknown')}
+            CREATED: {repository_data.get('createdAt', 'Unknown')}
+            
+            RECENT COMMITS ({len(commits_data)} total):
+            """
+            
+            # Add only essential commit information
+            for i, commit in enumerate(commits_data[:8]):  # Limit to 8 most recent
+                author_info = commit.get('author', {})
+                author_name = author_info.get('username', 'Unknown') if isinstance(author_info, dict) else str(author_info)
+                
+                repo_context += f"""
+            {i+1}. {commit.get('sha', 'Unknown')[:8]} - {commit.get('message', 'No message')} - {author_name} - {commit.get('timestamp', 'Unknown')}
+            """
+            
+            # Add essential file information
+            repo_context += f"""
+            
+            FILES ({len(files_data)} total):
+            """
+            
+            # Group files by directory for better structure understanding
+            file_structure = {}
+            for file in files_data:
+                path = file.get('path', 'Unknown')
+                dir_path = '/'.join(path.split('/')[:-1]) if '/' in path else 'root'
+                if dir_path not in file_structure:
+                    file_structure[dir_path] = []
+                file_structure[dir_path].append(file)
+            
+            for dir_path, files in file_structure.items():
+                repo_context += f"""
+            📁 {dir_path if dir_path != 'root' else '/'}:
+            """
+                for file in files[:5]:  # Limit files per directory
+                    file_type = file.get('type', 'Unknown')
+                    file_size = file.get('size', 0)
+                    file_content = file.get('content', '')
+                    
+                    repo_context += f"""
+               📄 {file.get('name', 'Unknown')} ({file_type}, {file_size} bytes)
+            """
+                    
+                    # Add minimal content analysis for key files
+                    if file_content and file_type in ['json', 'md', 'txt']:
+                        if file_type == 'json':
+                            try:
+                                import json
+                                json_data = json.loads(file_content)
+                                if isinstance(json_data, dict):
+                                    keys = list(json_data.keys())[:3]  # Only first 3 keys
+                                    repo_context += f"""
+                  Keys: {keys}
+            """
+                            except:
+                                pass
+                        elif file_type == 'md':
+                            lines = file_content.split('\n')
+                            headers = [line for line in lines if line.startswith('#')][:3]  # Only first 3 headers
+                            if headers:
+                                repo_context += f"""
+                  Sections: {', '.join([h.strip('# ').strip() for h in headers])}
+            """
+            
+            # Create the optimized prompt for concise responses
+            prompt = f"""
+            You are a concise repository assistant. Answer the user's question about this repository with SHORT, DIRECT answers.
+
+            CRITICAL RULES:
+            1. Keep answers under 100 words
+            2. Use bullet points for lists
+            3. Only use information from the repository data below
+            4. If information is not available, say "Not available in this repo"
+            5. Be direct and to the point
+            6. Format code snippets in backticks
+            7. Use simple language
+
+            REPOSITORY DATA:
+            {repo_context}
+
+            USER QUESTION: {question}
+
+            Provide a SHORT, DIRECT answer based only on the repository information above.
+            """
+
+            # Use streaming generation
+            response = await self.model.generate_content_async(prompt, stream=True)
+            
+            # Stream the response
+            async for chunk in response:
+                if chunk.text:
+                    yield chunk.text
+                    
+        except Exception as e:
+            yield f"Error: {str(e)}"
