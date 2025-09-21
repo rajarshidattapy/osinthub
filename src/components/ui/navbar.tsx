@@ -10,7 +10,7 @@ const navLinks = [
   { name: "Features", href: "#features" },
   { name: "How It Works", href: "#how-it-works" },
   { name: "Docs", href: "/docs" },
-  { name: "Community", href: "https://github.com/AdityaP700", external: true },
+  { name: "Community", href: "https://github.com/rajarshidayyapy/osinthub", external: true },
 ]
 
 export function LandingNavbar() {
@@ -32,7 +32,7 @@ export function LandingNavbar() {
           >
             <Link to="/" className="flex items-center space-x-3">
 <img
-    src="/assets/logo1.png"   // make sure path is correct
+    src="ui.png"   // make sure path is correct
     alt="OSINT Hub Logo"
     className="w-10 h-8 drop-shadow-md"
   /><span className="text-xl font-bold tracking-wide hidden sm:block text-white">
