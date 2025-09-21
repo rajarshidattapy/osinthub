@@ -263,6 +263,86 @@ class FileVersion(FileVersionBase):
     class Config:
         from_attributes = True
 
+# Commit schemas
+class CommitBase(BaseModel):
+    sha: str
+    message: str
+    timestamp: datetime
+    parent_sha: Optional[str] = None
+
+class CommitCreate(CommitBase):
+    repository_id: str
+    author_id: str
+
+class Commit(CommitBase):
+    id: str
+    repository_id: str
+    author_id: str
+    created_at: datetime
+    author: Optional[User] = None
+
+    class Config:
+        from_attributes = True
+
+# Commit File schemas
+class CommitFileBase(BaseModel):
+    file_path: str
+    change_type: ChangeType
+    additions: int = 0
+    deletions: int = 0
+    diff_content: Optional[str] = None
+
+class CommitFileCreate(CommitFileBase):
+    commit_id: str
+    file_id: str
+    previous_file_id: Optional[str] = None
+
+class CommitFile(CommitFileBase):
+    id: str
+    commit_id: str
+    file_id: str
+    previous_file_id: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+# Commit Graph schemas
+class CommitGraphBase(BaseModel):
+    graph_data: Dict[str, Any]
+    node_count: int = 0
+    edge_count: int = 0
+
+class CommitGraphCreate(CommitGraphBase):
+    repository_id: str
+
+class CommitGraph(CommitGraphBase):
+    id: str
+    repository_id: str
+    last_updated: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Graph Node schemas
+class GraphNode(BaseModel):
+    id: str
+    type: str  # "commit" or "file"
+    label: str
+    metadata: Dict[str, Any]
+    position: Optional[Dict[str, float]] = None
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    type: str  # "commit_to_file", "file_evolution", "commit_parent"
+    metadata: Dict[str, Any]
+
+class GraphData(BaseModel):
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]
+    layout: Optional[Dict[str, Any]] = None
+
 # Update forward references
 Repository.model_rebuild()
 MergeRequest.model_rebuild()
