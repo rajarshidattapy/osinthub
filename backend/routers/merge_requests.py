@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from database import get_db
-from models import MergeRequest as MergeRequestModel, User as UserModel, Repository as RepositoryModel
-from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus
+from models import MergeRequest as MergeRequestModel, User as UserModel, Repository as RepositoryModel, Comment as CommentModel
+from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus, Comment, CommentCreate
 from auth import verify_clerk_token, contributor_required
 from ai_service import AIService
 
@@ -285,3 +285,26 @@ async def validate_merge_request(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"AI validation failed: {str(e)}"
         )
+
+@router.post("/{mr_id}/comments", response_model=Comment)
+async def add_comment(
+    mr_id: str,
+    comment_data: CommentCreate,
+    current_user: UserModel = Depends(verify_clerk_token),
+    db: Session = Depends(get_db)
+):
+    """Add a comment to a merge request"""
+    mr = db.query(MergeRequestModel).filter(MergeRequestModel.id == mr_id).first()
+    if not mr:
+        raise HTTPException(status_code=404, detail="Merge request not found")
+    db_comment = CommentModel(
+        merge_request_id=mr_id,
+        author_id=current_user.id,
+        content=comment_data.content,
+        line_number=comment_data.line_number,
+        file_path=comment_data.file_path
+    )
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment

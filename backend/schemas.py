@@ -208,6 +208,28 @@ class RepositoryCollaborator(RepositoryCollaboratorBase):
     class Config:
         from_attributes = True
 
+# File Version schemas
+class FileVersionBase(BaseModel):
+    file_id: str
+    version_number: int
+    content: str
+    commit_message: str
+    author_id: str
+    created_at: datetime
+
+class FileVersionCreate(BaseModel):
+    file_id: str
+    content: str
+    commit_message: Optional[str] = None
+    author_id: str
+
+class FileVersion(FileVersionBase):
+    id: str
+    author: Optional[User] = None
+
+    class Config:
+        from_attributes = True
+
 # Update forward references
 Repository.model_rebuild()
 MergeRequest.model_rebuild()
