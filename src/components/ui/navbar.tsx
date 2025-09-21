@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { Menu, X, GitFork, Github } from "lucide-react"
+import { Menu, X, Github } from "lucide-react"
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react"
 import { Link } from "react-router-dom"
 

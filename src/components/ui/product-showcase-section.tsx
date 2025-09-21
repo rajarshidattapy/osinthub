@@ -35,6 +35,7 @@ export function ProductShowcaseSection() {
                                 src="/Dashboard.png" 
                                 alt="OSINT Hub Dashboard" 
                                 className="w-full h-auto rounded-lg"
+                                loading="lazy"
                             />
                         </div>
                     </div>
