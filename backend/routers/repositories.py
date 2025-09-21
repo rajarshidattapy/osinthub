@@ -36,7 +36,18 @@ async def create_repository(
     db.add(db_repo)
     db.commit()
     db.refresh(db_repo)
-    
+    # Audit log for repository creation
+    from ..audit import log_activity
+    log_activity(
+        db=db,
+        action="repository_create",
+        user_id=current_user.id,
+        repository_id=db_repo.id,
+        details={
+            "repository_id": db_repo.id,
+            "name": db_repo.name
+        }
+    )
     return db_repo
 
 @router.get("/", response_model=List[Repository])
@@ -140,7 +151,18 @@ async def update_repository(
     
     db.commit()
     db.refresh(repo)
-    
+    # Audit log for repository update
+    from ..audit import log_activity
+    log_activity(
+        db=db,
+        action="repository_update",
+        user_id=current_user.id,
+        repository_id=repo.id,
+        details={
+            "repository_id": repo.id,
+            "name": repo.name
+        }
+    )
     return repo
 
 @router.delete("/{repo_id}")
@@ -166,7 +188,18 @@ async def delete_repository(
     
     db.delete(repo)
     db.commit()
-    
+    # Audit log for repository deletion
+    from ..audit import log_activity
+    log_activity(
+        db=db,
+        action="repository_delete",
+        user_id=current_user.id,
+        repository_id=repo.id,
+        details={
+            "repository_id": repo.id,
+            "name": repo.name
+        }
+    )
     return {"message": "Repository deleted successfully"}
 
 @router.post("/{repo_id}/fork", response_model=Repository)
@@ -221,5 +254,17 @@ async def fork_repository(
     
     db.commit()
     db.refresh(fork_repo)
-    
+    # Audit log for repository fork
+    from ..audit import log_activity
+    log_activity(
+        db=db,
+        action="repository_fork",
+        user_id=current_user.id,
+        repository_id=fork_repo.id,
+        details={
+            "forked_from_id": repo_id,
+            "fork_id": fork_repo.id,
+            "fork_name": fork_repo.name
+        }
+    )
     return fork_repo

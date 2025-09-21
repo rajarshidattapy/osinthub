@@ -13,6 +13,7 @@ from ..schemas import RepositoryFile, FileVersion as FileVersionSchema
 from ..auth import verify_clerk_token, contributor_required
 from ..document_parser import DocumentParser, DocumentVersionService
 from ..ai_service import EnhancedAIService
+from ..audit import log_activity
 
 router = APIRouter()
 document_parser = DocumentParser()
@@ -184,6 +185,20 @@ async def upload_file(
         db.commit()
         db.refresh(db_file)
 
+        # Audit log for file upload/update
+        log_activity(
+            db=db,
+            action="file_upload" if not existing_file else "file_update",
+            user_id=current_user.id,
+            repository_id=repository_id,
+            details={
+                "file_id": db_file.id,
+                "filename": db_file.name,
+                "path": db_file.path,
+                "version": file_version.version_number if 'file_version' in locals() else 1
+            }
+        )
+
         # Return comprehensive response
         return {
             "file": db_file,
@@ -341,4 +356,16 @@ async def restore_file_version(
     file.content = version.content
     db.commit()
     db.refresh(file)
+    # Audit log for file restore
+    log_activity(
+        db=db,
+        action="file_restore_version",
+        user_id=current_user.id,
+        repository_id=file.repository_id,
+        details={
+            "file_id": file.id,
+            "restored_version": version_number,
+            "current_version": next_version
+        }
+    )
     return {"message": f"File restored to version {version_number}", "file": file.id, "current_version": next_version}

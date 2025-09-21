@@ -6,6 +6,7 @@ from database import get_db
 from models import RepositoryFile as RepositoryFileModel, User as UserModel, Repository as RepositoryModel, RepositoryCollaborator
 from schemas import RepositoryFile, RepositoryFileCreate, RepositoryFileUpdate
 from auth import verify_clerk_token, contributor_required
+from ..audit import log_activity
 
 router = APIRouter()
 
@@ -59,7 +60,18 @@ async def create_file(
     db.add(db_file)
     db.commit()
     db.refresh(db_file)
-    
+    # Audit log for file creation
+    log_activity(
+        db=db,
+        action="file_create",
+        user_id=current_user.id,
+        repository_id=file_data.repository_id,
+        details={
+            "file_id": db_file.id,
+            "filename": db_file.name,
+            "path": db_file.path
+        }
+    )
     return db_file
 
 @router.get("/repository/{repo_id}", response_model=List[RepositoryFile])
@@ -166,7 +178,18 @@ async def update_file(
     
     db.commit()
     db.refresh(file)
-    
+    # Audit log for file update
+    log_activity(
+        db=db,
+        action="file_update",
+        user_id=current_user.id,
+        repository_id=file.repository_id,
+        details={
+            "file_id": file.id,
+            "filename": file.name,
+            "path": file.path
+        }
+    )
     return file
 
 @router.delete("/{file_id}")
@@ -200,5 +223,16 @@ async def delete_file(
     
     db.delete(file)
     db.commit()
-    
+    # Audit log for file deletion
+    log_activity(
+        db=db,
+        action="file_delete",
+        user_id=current_user.id,
+        repository_id=file.repository_id,
+        details={
+            "file_id": file.id,
+            "filename": file.name,
+            "path": file.path
+        }
+    )
     return {"message": "File deleted successfully"}
