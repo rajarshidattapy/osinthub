@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GitCommit, FolderOpen, AlertCircle, CheckCircle } from 'lucide-react';
 import { useApiService } from '../../services/api';
+import { commits, commits2 } from '../../data/mockData';
 
 interface CommitImportModalProps {
   isOpen: boolean;
@@ -34,26 +35,12 @@ export const CommitImportModal: React.FC<CommitImportModalProps> = ({
       setError(null);
       setSuccess(false);
 
-      const token = await getToken();
-      const response = await fetch(`/api/repositories/${repositoryId}/commits/import`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          repo_path: repoPath,
-          max_commits: maxCommits
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to import commits');
-      }
-
-      const data = await response.json();
-      setImportedCommits(data.commits || []);
+      // Simulate API call with mock data
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Use mock data for testing based on repository ID
+      const mockCommits = (repositoryId === '2' ? commits2 : commits).slice(0, maxCommits);
+      setImportedCommits(mockCommits);
       setSuccess(true);
       onImportComplete();
     } catch (err) {

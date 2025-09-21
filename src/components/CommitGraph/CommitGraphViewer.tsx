@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GitCommit, FileText, GitBranch, Users, Calendar, BarChart3 } from 'lucide-react';
 import { useApiService } from '../../services/api';
+import { commitGraph, graphStatistics, commitGraph2, graphStatistics2, nodeDiffs } from '../../data/mockData';
 
 interface GraphNode {
   id: string;
@@ -54,6 +55,9 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [statistics, setStatistics] = useState<any>(null);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { getToken } = useApiService();
 
@@ -65,20 +69,11 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
   const loadCommitGraph = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const response = await fetch(`/api/repositories/${repositoryId}/graph`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load commit graph');
-      }
-
-      const data = await response.json();
-      setGraphData(data.graph_data);
+      // Use mock data for testing based on repository ID
+      const mockGraph = repositoryId === '2' ? commitGraph2 : commitGraph;
+      const mockStats = repositoryId === '2' ? graphStatistics2 : graphStatistics;
+      setGraphData(mockGraph.graph_data);
+      setStatistics(mockStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load commit graph');
     } finally {
@@ -88,18 +83,9 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
 
   const loadStatistics = async () => {
     try {
-      const token = await getToken();
-      const response = await fetch(`/api/repositories/${repositoryId}/graph/statistics`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStatistics(data);
-      }
+      // Use mock data for testing based on repository ID
+      const mockStats = repositoryId === '2' ? graphStatistics2 : graphStatistics;
+      setStatistics(mockStats);
     } catch (err) {
       console.error('Failed to load statistics:', err);
     }
@@ -108,27 +94,33 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
   const generateCommitGraph = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const response = await fetch(`/api/repositories/${repositoryId}/graph/generate?max_commits=10`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate commit graph');
-      }
-
-      const data = await response.json();
-      setGraphData(data.graph);
-      await loadStatistics();
+      // Use mock data for testing based on repository ID
+      const mockGraph = repositoryId === '2' ? commitGraph2 : commitGraph;
+      const mockStats = repositoryId === '2' ? graphStatistics2 : graphStatistics;
+      setGraphData(mockGraph.graph_data);
+      setStatistics(mockStats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate commit graph');
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateBounds = () => {
+    if (!graphData) return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    
+    graphData.nodes.forEach(node => {
+      if (node.position) {
+        minX = Math.min(minX, node.position.x);
+        maxX = Math.max(maxX, node.position.x);
+        minY = Math.min(minY, node.position.y);
+        maxY = Math.max(maxY, node.position.y);
+      }
+    });
+    
+    return { minX, maxX, minY, maxY };
   };
 
   const drawGraph = () => {
@@ -145,20 +137,41 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Calculate bounds and center the graph
+    const bounds = calculateBounds();
+    const graphWidth = bounds.maxX - bounds.minX;
+    const graphHeight = bounds.maxY - bounds.minY;
+    
+    // Add padding
+    const padding = 50;
+    const scaleX = (canvas.width - 2 * padding) / Math.max(graphWidth, 200);
+    const scaleY = (canvas.height - 2 * padding) / Math.max(graphHeight, 200);
+    const scale = Math.min(scaleX, scaleY, 1);
+    
+    // Center the graph
+    const centerX = (canvas.width - graphWidth * scale) / 2;
+    const centerY = (canvas.height - graphHeight * scale) / 2;
+
+    // Apply pan and zoom
+    const offsetX = centerX + panX;
+    const offsetY = centerY + panY;
+
     // Draw edges first
     graphData.edges.forEach(edge => {
       const sourceNode = graphData.nodes.find(n => n.id === edge.source);
       const targetNode = graphData.nodes.find(n => n.id === edge.target);
       
       if (sourceNode && targetNode && sourceNode.position && targetNode.position) {
-        const sourcePos = sourceNode.position;
-        const targetPos = targetNode.position;
+        const sourceX = (sourceNode.position.x - bounds.minX) * scale + offsetX;
+        const sourceY = (sourceNode.position.y - bounds.minY) * scale + offsetY;
+        const targetX = (targetNode.position.x - bounds.minX) * scale + offsetX;
+        const targetY = (targetNode.position.y - bounds.minY) * scale + offsetY;
         
         ctx.strokeStyle = getEdgeColor(edge.type);
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * zoom;
         ctx.beginPath();
-        ctx.moveTo(sourcePos.x, sourcePos.y);
-        ctx.lineTo(targetPos.x, targetPos.y);
+        ctx.moveTo(sourceX, sourceY);
+        ctx.lineTo(targetX, targetY);
         ctx.stroke();
       }
     });
@@ -167,24 +180,28 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
     graphData.nodes.forEach(node => {
       if (!node.position) return;
 
-      const { x, y } = node.position;
+      const x = (node.position.x - bounds.minX) * scale + offsetX;
+      const y = (node.position.y - bounds.minY) * scale + offsetY;
+      const radius = 15 * zoom;
       
       // Draw node circle
       ctx.fillStyle = getNodeColor(node.type);
       ctx.beginPath();
-      ctx.arc(x, y, 15, 0, 2 * Math.PI);
+      ctx.arc(x, y, radius, 0, 2 * Math.PI);
       ctx.fill();
 
       // Draw node border
       ctx.strokeStyle = selectedNode?.id === node.id ? '#3b82f6' : '#374151';
-      ctx.lineWidth = selectedNode?.id === node.id ? 3 : 1;
+      ctx.lineWidth = (selectedNode?.id === node.id ? 3 : 1) * zoom;
       ctx.stroke();
 
       // Draw node label
       ctx.fillStyle = '#ffffff';
-      ctx.font = '12px sans-serif';
+      ctx.font = `${12 * zoom}px sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(node.label.substring(0, 20), x, y + 4);
+      ctx.textBaseline = 'middle';
+      const label = node.label.length > 15 ? node.label.substring(0, 15) + '...' : node.label;
+      ctx.fillText(label, x, y);
     });
   };
 
@@ -210,16 +227,34 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    // Calculate bounds and scaling (same as in drawGraph)
+    const bounds = calculateBounds();
+    const graphWidth = bounds.maxX - bounds.minX;
+    const graphHeight = bounds.maxY - bounds.minY;
+    const padding = 50;
+    const scaleX = (canvas.width - 2 * padding) / Math.max(graphWidth, 200);
+    const scaleY = (canvas.height - 2 * padding) / Math.max(graphHeight, 200);
+    const scale = Math.min(scaleX, scaleY, 1);
+    const centerX = (canvas.width - graphWidth * scale) / 2;
+    const centerY = (canvas.height - graphHeight * scale) / 2;
+    const offsetX = centerX + panX;
+    const offsetY = centerY + panY;
 
     // Find clicked node
     const clickedNode = graphData.nodes.find(node => {
       if (!node.position) return false;
+      
+      const nodeX = (node.position.x - bounds.minX) * scale + offsetX;
+      const nodeY = (node.position.y - bounds.minY) * scale + offsetY;
+      const radius = 15 * zoom;
+      
       const distance = Math.sqrt(
-        Math.pow(x - node.position.x, 2) + Math.pow(y - node.position.y, 2)
+        Math.pow(clickX - nodeX, 2) + Math.pow(clickY - nodeY, 2)
       );
-      return distance <= 15;
+      return distance <= radius;
     });
 
     setSelectedNode(clickedNode || null);
@@ -229,7 +264,39 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
     if (graphData) {
       drawGraph();
     }
-  }, [graphData, selectedNode]);
+  }, [graphData, selectedNode, panX, panY, zoom]);
+
+  const handleWheel = (event: React.WheelEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? 0.9 : 1.1;
+    setZoom(prev => Math.max(0.1, Math.min(3, prev * delta)));
+  };
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (event.button === 0) { // Left mouse button
+      const startX = event.clientX - panX;
+      const startY = event.clientY - panY;
+      
+      const handleMouseMove = (e: MouseEvent) => {
+        setPanX(e.clientX - startX);
+        setPanY(e.clientY - startY);
+      };
+      
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+  };
+
+  const resetView = () => {
+    setPanX(0);
+    setPanY(0);
+    setZoom(1);
+  };
 
   if (loading) {
     return (
@@ -358,71 +425,119 @@ export const CommitGraphViewer: React.FC<CommitGraphViewerProps> = ({
       {/* Graph Visualization */}
       <div className="p-4">
         <div className="bg-gray-800 rounded-lg p-4 mb-4">
-          <div className="flex items-center space-x-4 text-sm text-gray-300 mb-2">
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>Commits</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4 text-sm text-gray-300">
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span>Commits</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span>Files</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Relationships</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span>Files</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>Relationships</span>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={resetView}
+                className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors"
+              >
+                Reset View
+              </button>
+              <div className="text-xs text-gray-400">
+                Zoom: {Math.round(zoom * 100)}% | Pan: {panX.toFixed(0)}, {panY.toFixed(0)}
+              </div>
             </div>
           </div>
-          <canvas
-            ref={canvasRef}
-            className="w-full h-96 border border-gray-600 rounded cursor-pointer"
-            onClick={handleCanvasClick}
-          />
+          <div className="relative">
+            <canvas
+              ref={canvasRef}
+              className="w-full h-96 border border-gray-600 rounded cursor-grab active:cursor-grabbing"
+              onClick={handleCanvasClick}
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+            />
+            <div className="absolute top-2 right-2 text-xs text-gray-400 bg-gray-900/80 px-2 py-1 rounded">
+              Scroll to zoom • Drag to pan
+            </div>
+          </div>
         </div>
 
         {/* Node Details */}
         {selectedNode && (
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Node Details</h3>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-gray-400">Type:</span>
-                <span className="ml-2 text-white capitalize">{selectedNode.type}</span>
+            <h3 className="text-lg font-semibold text-white mb-4">Node Details</h3>
+            
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-gray-400">Type:</span>
+                  <span className="ml-2 text-white capitalize">{selectedNode.type}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Label:</span>
+                  <span className="ml-2 text-white">{selectedNode.label}</span>
+                </div>
+                {selectedNode.metadata.sha && (
+                  <div>
+                    <span className="text-gray-400">SHA:</span>
+                    <span className="ml-2 text-white font-mono">{selectedNode.metadata.sha}</span>
+                  </div>
+                )}
+                {selectedNode.metadata.author && (
+                  <div>
+                    <span className="text-gray-400">Author:</span>
+                    <span className="ml-2 text-white">{selectedNode.metadata.author}</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <span className="text-gray-400">Label:</span>
-                <span className="ml-2 text-white">{selectedNode.label}</span>
+              
+              <div className="space-y-2 text-sm">
+                {selectedNode.metadata.message && (
+                  <div>
+                    <span className="text-gray-400">Message:</span>
+                    <span className="ml-2 text-white">{selectedNode.metadata.message}</span>
+                  </div>
+                )}
+                {selectedNode.metadata.file_path && (
+                  <div>
+                    <span className="text-gray-400">File Path:</span>
+                    <span className="ml-2 text-white">{selectedNode.metadata.file_path}</span>
+                  </div>
+                )}
+                {selectedNode.metadata.change_type && (
+                  <div>
+                    <span className="text-gray-400">Change Type:</span>
+                    <span className="ml-2 text-white capitalize">{selectedNode.metadata.change_type}</span>
+                  </div>
+                )}
+                {selectedNode.metadata.additions && (
+                  <div>
+                    <span className="text-gray-400">Changes:</span>
+                    <span className="ml-2 text-green-400">+{selectedNode.metadata.additions}</span>
+                    {selectedNode.metadata.deletions && (
+                      <span className="ml-1 text-red-400">-{selectedNode.metadata.deletions}</span>
+                    )}
+                  </div>
+                )}
               </div>
-              {selectedNode.metadata.sha && (
-                <div>
-                  <span className="text-gray-400">SHA:</span>
-                  <span className="ml-2 text-white font-mono">{selectedNode.metadata.sha}</span>
-                </div>
-              )}
-              {selectedNode.metadata.message && (
-                <div>
-                  <span className="text-gray-400">Message:</span>
-                  <span className="ml-2 text-white">{selectedNode.metadata.message}</span>
-                </div>
-              )}
-              {selectedNode.metadata.author && (
-                <div>
-                  <span className="text-gray-400">Author:</span>
-                  <span className="ml-2 text-white">{selectedNode.metadata.author}</span>
-                </div>
-              )}
-              {selectedNode.metadata.file_path && (
-                <div>
-                  <span className="text-gray-400">File Path:</span>
-                  <span className="ml-2 text-white">{selectedNode.metadata.file_path}</span>
-                </div>
-              )}
-              {selectedNode.metadata.change_type && (
-                <div>
-                  <span className="text-gray-400">Change Type:</span>
-                  <span className="ml-2 text-white capitalize">{selectedNode.metadata.change_type}</span>
-                </div>
-              )}
             </div>
+
+            {/* Diff Content */}
+            {nodeDiffs[selectedNode.id] && (
+              <div className="mt-4">
+                <h4 className="text-md font-semibold text-white mb-2">Changes from Previous Version</h4>
+                <div className="bg-gray-900 border border-gray-600 rounded-lg p-3 overflow-x-auto">
+                  <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">
+                    {nodeDiffs[selectedNode.id]}
+                  </pre>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

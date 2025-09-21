@@ -14,6 +14,7 @@ import { FileExplorer } from '../Files/FileExplorer';
 import { FileEditor } from '../Files/FileEditor';
 import { CommitGraphViewer } from '../CommitGraph/CommitGraphViewer';
 import { CommitImportModal } from '../CommitGraph/CommitImportModal';
+import { commits, commits2 } from '../../data/mockData';
 
 interface RepositoryViewProps {
   repository: Repository;
@@ -126,7 +127,6 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                 onClick={() => {
                   setActiveTab(tab.id as any);
                   if (tab.id === 'pulls') onViewMergeRequests();
-                  if (tab.id === 'commits') setShowCommitGraph(true);
                 }}
                 className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
                   activeTab === tab.id 
@@ -213,16 +213,40 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
                   >
                     <GitCommit className="w-4 h-4" />
-                    <span>View Graph</span>
+                    <span>Generate Graph</span>
                   </button>
                 </div>
               </div>
               
-              <div className="text-gray-400 text-center py-8">
-                <GitCommit className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <h4 className="text-lg font-semibold mb-2">No Commits Found</h4>
-                <p className="mb-4">This repository doesn't have any commits yet.</p>
-                <p className="text-sm">Import commits from a local git repository to visualize the commit history and file relationships.</p>
+              {/* Commit List */}
+              <div className="space-y-3">
+                {(repository.id === '2' ? commits2 : commits).map((commit, index) => (
+                  <div key={commit.id} className="bg-gray-700 border border-gray-600 rounded-lg p-4 hover:bg-gray-650 transition-colors">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <GitCommit className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-sm font-mono text-gray-300">{commit.sha.substring(0, 7)}</span>
+                          <span className="text-sm text-gray-400">•</span>
+                          <span className="text-sm text-gray-400">{formatDate(commit.timestamp)}</span>
+                        </div>
+                        <h4 className="text-white font-medium mb-1">{commit.message}</h4>
+                        <div className="flex items-center space-x-2 text-sm text-gray-400">
+                          <img 
+                            src={commit.author.avatar} 
+                            alt={commit.author.username}
+                            className="w-4 h-4 rounded-full"
+                          />
+                          <span>{commit.author.username}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
