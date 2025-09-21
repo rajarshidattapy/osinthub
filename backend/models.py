@@ -72,7 +72,9 @@ class RepositoryFile(Base):
     author_id = Column(String, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+    change_info = Column(JSON, nullable=True)  # Store document change info as JSON
+    storage_path = Column(String, nullable=True)
+
     # Relationships
     repository = relationship("Repository", back_populates="files")
     author = relationship("User", back_populates="file_changes")
