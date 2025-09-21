@@ -14,6 +14,7 @@ import { FileExplorer } from '../Files/FileExplorer';
 import { FileEditor } from '../Files/FileEditor';
 import { CommitGraphViewer } from '../CommitGraph/CommitGraphViewer';
 import { CommitImportModal } from '../CommitGraph/CommitImportModal';
+import { RepositoryChatbot } from './RepositoryChatbot';
 import { commits, commits2 } from '../../data/mockData';
 
 interface RepositoryViewProps {
@@ -33,6 +34,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
   const [activeTab, setActiveTab] = useState<'code' | 'issues' | 'pulls' | 'security' | 'insights' | 'commits'>('code');
   const [showCommitGraph, setShowCommitGraph] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -220,7 +222,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
               
               {/* Commit List */}
               <div className="space-y-3">
-                {(repository.id === '2' ? commits2 : commits).map((commit, index) => (
+                {(repository.id === '2' ? commits2 : commits).map((commit) => (
                   <div key={commit.id} className="bg-gray-700 border border-gray-600 rounded-lg p-4 hover:bg-gray-650 transition-colors">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0">
@@ -251,6 +253,15 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
             </div>
           </div>
         )}
+
+        {/* Repository Chatbot */}
+        <RepositoryChatbot
+          repository={repository}
+          commits={repository.id === '2' ? commits2 : commits}
+          files={repository.files}
+          isOpen={showChatbot}
+          onToggle={() => setShowChatbot(!showChatbot)}
+        />
       </div>
     </div>
   );
