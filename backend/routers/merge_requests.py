@@ -7,6 +7,8 @@ from models import MergeRequest as MergeRequestModel, User as UserModel, Reposit
 from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus, Comment, CommentCreate, MergeRequestVersion as MergeRequestVersionSchema
 from auth import verify_clerk_token, contributor_required
 from ai_service import AIService
+from audit import log_activity
+import httpx
 
 router = APIRouter()
 ai_service = AIService()
@@ -59,7 +61,6 @@ async def create_merge_request(
     db.add(db_mr)
     db.commit()
     db.refresh(db_mr)
-
     # Versioning: first version
     from models import MergeRequestVersion
     mr_version = MergeRequestVersion(
@@ -77,6 +78,19 @@ async def create_merge_request(
     )
     db.add(mr_version)
     db.commit()
+    # Audit log for MR creation
+    log_activity(
+        db=db,
+        action="merge_request_create",
+        user_id=current_user.id,
+        repository_id=db_mr.target_repo_id,
+        details={
+            "merge_request_id": db_mr.id,
+            "title": db_mr.title,
+            "source_repo_id": db_mr.source_repo_id,
+            "target_repo_id": db_mr.target_repo_id
+        }
+    )
     return db_mr
 
 @router.get("/", response_model=List[MergeRequest])
@@ -154,7 +168,6 @@ async def update_merge_request(
     
     db.commit()
     db.refresh(mr)
-
     # Versioning: save new version after update
     from models import MergeRequestVersion
     last_version = db.query(MergeRequestVersion).filter(MergeRequestVersion.merge_request_id == mr.id).order_by(MergeRequestVersion.version_number.desc()).first()
@@ -174,6 +187,19 @@ async def update_merge_request(
     )
     db.add(mr_version)
     db.commit()
+    # Audit log for MR update
+    log_activity(
+        db=db,
+        action="merge_request_update",
+        user_id=current_user.id,
+        repository_id=mr.target_repo_id,
+        details={
+            "merge_request_id": mr.id,
+            "title": mr.title,
+            "status": mr.status,
+            "version": next_version
+        }
+    )
     return mr
 
 @router.post("/{mr_id}/merge")
@@ -219,7 +245,20 @@ async def merge_request(
     # Update status to merged
     mr.status = "merged"
     db.commit()
-    
+    # Audit log for merge action
+    log_activity(
+        db=db,
+        action="merge_request_merged",
+        user_id=current_user.id,
+        repository_id=mr.target_repo_id,
+        details={
+            "merge_request_id": mr.id,
+            "title": mr.title,
+            "status": mr.status
+        }
+    )
+    # Trigger webhook notification
+    await send_mr_status_webhook(mr, "merged", db)
     return {"message": "Merge request merged successfully"}
 
 @router.post("/{mr_id}/close")
@@ -253,7 +292,20 @@ async def close_merge_request(
     # Update status to closed
     mr.status = "closed"
     db.commit()
-    
+    # Audit log for close action
+    log_activity(
+        db=db,
+        action="merge_request_closed",
+        user_id=current_user.id,
+        repository_id=mr.target_repo_id,
+        details={
+            "merge_request_id": mr.id,
+            "title": mr.title,
+            "status": mr.status
+        }
+    )
+    # Trigger webhook notification
+    await send_mr_status_webhook(mr, "closed", db)
     return {"message": "Merge request closed successfully"}
 
 @router.post("/{mr_id}/validate")
@@ -343,6 +395,18 @@ async def add_comment(
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)
+    # Audit log for comment add
+    log_activity(
+        db=db,
+        action="merge_request_comment_add",
+        user_id=current_user.id,
+        repository_id=mr.target_repo_id,
+        details={
+            "merge_request_id": mr.id,
+            "comment_id": db_comment.id,
+            "content": db_comment.content
+        }
+    )
     return db_comment
 
 @router.get("/{mr_id}/versions", response_model=List[MergeRequestVersionSchema])
@@ -398,4 +462,34 @@ async def restore_merge_request_version(
     mr.ai_validation_suggestions = version.ai_validation_suggestions
     db.commit()
     db.refresh(mr)
+    # Audit log for MR restore
+    log_activity(
+        db=db,
+        action="merge_request_restore_version",
+        user_id=current_user.id,
+        repository_id=mr.target_repo_id,
+        details={
+            "merge_request_id": mr.id,
+            "restored_version": version_number,
+            "current_version": next_version
+        }
+    )
     return {"message": f"Merge request restored to version {version_number}", "merge_request": mr.id, "current_version": next_version}
+
+async def send_mr_status_webhook(mr, status: str, db):
+    # Get user email (author of MR)
+    user = db.query(UserModel).filter(UserModel.id == mr.author_id).first()
+    to_email = user.email if user and hasattr(user, 'email') else None
+    webhook_data = {
+        "merge_request_id": mr.id,
+        "status": status,
+        "user_email": to_email,
+        "repository_name": mr.target_repo.name if hasattr(mr, 'target_repo') and mr.target_repo else "",
+        "title": mr.title
+    }
+    # Call webhook endpoint
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post("http://localhost:8000/webhooks/merge-request-status", json=webhook_data)
+    except Exception as e:
+        print(f"Failed to call webhook: {e}")
