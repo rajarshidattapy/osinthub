@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
@@ -6,14 +6,14 @@ import uuid
 import shutil
 from pathlib import Path
 
-from ..database import get_db
-from ..models import RepositoryFile as RepositoryFileModel, User as UserModel, Repository as RepositoryModel, \
+from database import get_db
+from models import RepositoryFile as RepositoryFileModel, User as UserModel, Repository as RepositoryModel, \
     RepositoryCollaborator, FileVersion
-from ..schemas import RepositoryFile, FileVersion as FileVersionSchema
-from ..auth import verify_clerk_token, contributor_required
-from ..document_parser import DocumentParser, DocumentVersionService
-from ..ai_service import EnhancedAIService
-from ..audit import log_activity
+from schemas import RepositoryFile, FileVersion as FileVersionSchema
+from auth import verify_clerk_token, contributor_required
+from document_parser import DocumentParser, DocumentVersionService
+from ai_service import EnhancedAIService
+from audit import log_activity
 
 router = APIRouter()
 document_parser = DocumentParser()

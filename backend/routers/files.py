@@ -6,7 +6,7 @@ from database import get_db
 from models import RepositoryFile as RepositoryFileModel, User as UserModel, Repository as RepositoryModel, RepositoryCollaborator
 from schemas import RepositoryFile, RepositoryFileCreate, RepositoryFileUpdate
 from auth import verify_clerk_token, contributor_required
-from ..audit import log_activity
+from audit import log_activity
 
 router = APIRouter()
 

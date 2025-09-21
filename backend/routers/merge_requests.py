@@ -6,12 +6,12 @@ from database import get_db
 from models import MergeRequest as MergeRequestModel, User as UserModel, Repository as RepositoryModel, Comment as CommentModel, MergeRequestVersion
 from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus, Comment, CommentCreate, MergeRequestVersion as MergeRequestVersionSchema
 from auth import verify_clerk_token, contributor_required
-from ai_service import AIService
+from ai_service import EnhancedAIService
 from audit import log_activity
 import httpx
 
 router = APIRouter()
-ai_service = AIService()
+ai_service = EnhancedAIService()
 
 @router.post("/", response_model=MergeRequest)
 async def create_merge_request(
