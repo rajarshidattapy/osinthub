@@ -8,6 +8,7 @@ from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeR
 from auth import verify_clerk_token, contributor_required
 from ai_service import AIService
 from audit import log_activity
+import httpx
 
 router = APIRouter()
 ai_service = AIService()
@@ -256,6 +257,8 @@ async def merge_request(
             "status": mr.status
         }
     )
+    # Trigger webhook notification
+    await send_mr_status_webhook(mr, "merged", db)
     return {"message": "Merge request merged successfully"}
 
 @router.post("/{mr_id}/close")
@@ -301,6 +304,8 @@ async def close_merge_request(
             "status": mr.status
         }
     )
+    # Trigger webhook notification
+    await send_mr_status_webhook(mr, "closed", db)
     return {"message": "Merge request closed successfully"}
 
 @router.post("/{mr_id}/validate")
@@ -470,3 +475,21 @@ async def restore_merge_request_version(
         }
     )
     return {"message": f"Merge request restored to version {version_number}", "merge_request": mr.id, "current_version": next_version}
+
+async def send_mr_status_webhook(mr, status: str, db):
+    # Get user email (author of MR)
+    user = db.query(UserModel).filter(UserModel.id == mr.author_id).first()
+    to_email = user.email if user and hasattr(user, 'email') else None
+    webhook_data = {
+        "merge_request_id": mr.id,
+        "status": status,
+        "user_email": to_email,
+        "repository_name": mr.target_repo.name if hasattr(mr, 'target_repo') and mr.target_repo else "",
+        "title": mr.title
+    }
+    # Call webhook endpoint
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post("http://localhost:8000/webhooks/merge-request-status", json=webhook_data)
+    except Exception as e:
+        print(f"Failed to call webhook: {e}")
