@@ -165,3 +165,23 @@ class FileVersion(Base):
     # Relationships
     file = relationship("RepositoryFile")
     author = relationship("User")
+
+class MergeRequestVersion(Base):
+    __tablename__ = "merge_request_versions"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    merge_request_id = Column(String, ForeignKey("merge_requests.id"), nullable=False)
+    version_number = Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    status = Column(String)
+    ai_validation_status = Column(String)
+    ai_validation_score = Column(Float)
+    ai_validation_feedback = Column(Text)
+    ai_validation_concerns = Column(JSON)
+    ai_validation_suggestions = Column(JSON)
+    author_id = Column(String, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    author = relationship("User")
