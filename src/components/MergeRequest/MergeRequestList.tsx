@@ -22,10 +22,10 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open': return <GitPullRequest className="w-4 h-4 text-green-400" />;
-      case 'merged': return <CheckCircle className="w-4 h-4 text-purple-400" />;
-      case 'closed': return <XCircle className="w-4 h-4 text-red-400" />;
-      default: return <Clock className="w-4 h-4 text-gray-400" />;
+      case 'open': return <GitPullRequest className="w-4 h-4" style={{color: 'var(--accent-success)'}} />;
+      case 'merged': return <CheckCircle className="w-4 h-4" style={{color: 'var(--accent-primary)'}} />;
+      case 'closed': return <XCircle className="w-4 h-4" style={{color: 'var(--accent-danger)'}} />;
+      default: return <Clock className="w-4 h-4" style={{color: 'var(--fg-muted)'}} />;
     }
   };
 
@@ -34,35 +34,35 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-6">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="app-container">
+      <div className="page-container">
         <div className="flex items-center space-x-4 mb-6">
           <button 
             onClick={onBack}
-            className="text-blue-400 hover:text-blue-300 flex items-center space-x-1"
+            className="btn-outline flex items-center space-x-2 hover:text-blue-400"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
           </button>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="page-header">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2 flex items-center space-x-3">
+            <h1 className="page-title flex items-center space-x-3">
               <GitPullRequest className="w-8 h-8" />
               <span>Pull Requests</span>
             </h1>
-            <p className="text-gray-400">Review and merge intelligence contributions</p>
+            <p className="page-subtitle">Review and merge intelligence contributions</p>
           </div>
           
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <button className="btn-success flex items-center space-x-2">
             <GitPullRequest className="w-4 h-4" />
             <span>New Pull Request</span>
           </button>
         </div>
 
         {/* Filter Tabs */}
-        <div className="border-b border-gray-700 mb-6">
+        <div className="border-b mb-6" style={{borderColor: 'var(--border-default)'}}>
           <nav className="flex space-x-8">
             {[
               { id: 'all', label: 'All', count: mergeRequests.length },
@@ -75,13 +75,13 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
                 onClick={() => setFilter(tab.id as any)}
                 className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
                   filter === tab.id 
-                    ? 'border-orange-500 text-white' 
-                    : 'border-transparent text-gray-400 hover:text-white'
+                    ? 'border-blue-500 text-fg' 
+                    : 'border-transparent text-muted hover:text-fg'
                 }`}
               >
                 {getStatusIcon(tab.id)}
                 <span>{tab.label}</span>
-                <span className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">
+                <span className="px-2 py-0.5 rounded-full text-xs" style={{backgroundColor: 'var(--bg-2)', color: 'var(--fg-muted)'}}>
                   {tab.count}
                 </span>
               </button>
@@ -101,10 +101,10 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
         </div>
 
         {filteredMRs.length === 0 && (
-          <div className="text-center py-16">
-            <GitPullRequest className="w-16 h-16 mx-auto text-gray-400 mb-4 opacity-50" />
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">No pull requests found</h3>
-            <p className="text-gray-500">No pull requests match the current filter.</p>
+          <div className="error-container">
+            <GitPullRequest className="w-16 h-16 mx-auto mb-4 opacity-50" style={{color: 'var(--fg-subtle)'}} />
+            <h3 className="text-xl font-semibold mb-2" style={{color: 'var(--fg-muted)'}}>No pull requests found</h3>
+            <p className="text-subtle">No pull requests match the current filter.</p>
           </div>
         )}
       </div>

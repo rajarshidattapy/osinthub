@@ -1,0 +1,56 @@
+/* OSINT Hub tokens with oh- prefix */
+:root {
+  --oh-bg-0: #0b0f14;
+  --oh-bg-1: #0f1720;
+  --oh-fg: #e6eef3;
+  --oh-muted-text: #8b98a7;
+  --oh-accent: #4fd1c5;
+  --oh-accent-2: #7c5cff;
+  --oh-danger: #ff6b6b;
+  --oh-success: #4ade80;
+  --oh-grid: rgba(255, 255, 255, 0.04);
+  --oh-radius-card: 12px;
+}
+
+.oh-bg-app {
+  background-color: var(--oh-bg-0);
+}
+.oh-bg-surface {
+  background-color: var(--oh-bg-1);
+}
+.oh-text-fg {
+  color: var(--oh-fg);
+}
+.oh-text-muted {
+  color: var(--oh-muted-text);
+}
+.oh-text-accent {
+  color: var(--oh-accent);
+}
+.oh-text-accent-2 {
+  color: var(--oh-accent-2);
+}
+.oh-border-grid {
+  border-color: var(--oh-grid);
+}
+
+.oh-card {
+  background: var(--oh-bg-1);
+  border: 1px solid var(--oh-grid);
+  border-radius: var(--oh-radius-card);
+}
+
+.oh-btn-accent {
+  background: var(--oh-accent);
+  color: #0b0f14;
+  transition: filter 150ms ease;
+}
+.oh-btn-accent:hover {
+  filter: brightness(1.05);
+}
+
+.oh-btn-outline {
+  background: transparent;
+  border: 1px solid var(--oh-grid);
+  color: var(--oh-fg);
+}

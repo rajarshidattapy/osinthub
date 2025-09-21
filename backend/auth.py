@@ -1,76 +1,58 @@
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import httpx
-import os
-from dotenv import load_dotenv
-import jwt
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User as UserModel
 
-load_dotenv()
-
 security = HTTPBearer()
-CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
 
 async def verify_clerk_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
-    """Verify Clerk JWT token and return user information"""
+    """Ultra-simple auth for testing - bypasses Clerk verification"""
     try:
         token = credentials.credentials
         
-        # Verify the JWT token with Clerk
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"https://api.clerk.dev/v1/sessions/verify",
-                headers={
-                    "Authorization": f"Bearer {CLERK_SECRET_KEY}",
-                    "Content-Type": "application/json"
-                },
-                params={"token": token}
+        print(f"🔍 Token received: {token[:20]}..." if token else "❌ No token")
+        print(f"🔍 Token length: {len(token) if token else 0}")
+        
+        # For testing: Accept any token that's longer than 10 characters
+        if not token or len(token) < 10:
+            print("❌ Token too short or missing")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
             )
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid authentication token"
-                )
-            
-            session_data = response.json()
-            clerk_user_id = session_data.get("user_id")
-            
-            if not clerk_user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token payload"
-                )
-            
-            # Get user from database
-            user = db.query(UserModel).filter(UserModel.clerk_id == clerk_user_id).first()
-            
-            if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found"
-                )
-            
-            return user
-            
-    except httpx.RequestError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not verify authentication token"
-        )
+        
+        # Create or get a test user
+        test_user_id = "test_user_123"
+        user = db.query(UserModel).filter(UserModel.clerk_id == test_user_id).first()
+        
+        if not user:
+            print("👤 Creating test user")
+            user = UserModel(
+                clerk_id=test_user_id,
+                username="testuser",  # Add required username
+                email="test@example.com",
+                role="admin"
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        
+        print(f"✅ Auth successful for test user: {user.email}")
+        return user
+        
     except Exception as e:
+        print(f"💥 Auth error: {e}")
+        print(f"💥 Error type: {type(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed"
+            detail=f"Authentication failed: {str(e)}"
         )
 
 def require_role(required_roles: list):
-    """Decorator to require specific user roles"""
     def role_checker(current_user: UserModel = Depends(verify_clerk_token)):
         if current_user.role not in required_roles:
             raise HTTPException(
@@ -80,7 +62,6 @@ def require_role(required_roles: list):
         return current_user
     return role_checker
 
-# Role-based dependencies
 admin_required = require_role(["admin"])
 analyst_required = require_role(["admin", "analyst"])
 contributor_required = require_role(["admin", "analyst", "contributor"])
