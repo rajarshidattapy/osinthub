@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 from sqlalchemy.orm import Session
-from .models import AuditEntry
+from models import AuditEntry
 from datetime import datetime
 
 def log_activity(

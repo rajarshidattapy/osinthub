@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..database import get_db
-from ..models import Repository as RepositoryModel, User as UserModel, RepositoryCollaborator
+from database import get_db
+from models import Repository as RepositoryModel, User as UserModel, RepositoryCollaborator
 from schemas import Repository, RepositoryCreate, RepositoryUpdate
 from auth import verify_clerk_token, contributor_required
 

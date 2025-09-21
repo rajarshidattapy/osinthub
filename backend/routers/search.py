@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from typing import Optional, List
 
-from ..database import get_db
-from ..models import Repository as RepositoryModel, RepositoryFile as RepositoryFileModel, MergeRequest as MergeRequestModel, User as UserModel
-from ..auth import verify_clerk_token
+from database import get_db
+from models import Repository as RepositoryModel, RepositoryFile as RepositoryFileModel, MergeRequest as MergeRequestModel, User as UserModel
+from auth import verify_clerk_token
 
 router = APIRouter()
 
