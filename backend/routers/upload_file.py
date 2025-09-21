@@ -8,8 +8,8 @@ from pathlib import Path
 
 from ..database import get_db
 from ..models import RepositoryFile as RepositoryFileModel, User as UserModel, Repository as RepositoryModel, \
-    RepositoryCollaborator
-from ..schemas import RepositoryFile
+    RepositoryCollaborator, FileVersion
+from ..schemas import RepositoryFile, FileVersion as FileVersionSchema
 from ..auth import verify_clerk_token, contributor_required
 from ..document_parser import DocumentParser, DocumentVersionService
 from ..ai_service import EnhancedAIService
@@ -145,6 +145,17 @@ async def upload_file(
             existing_file.change_info = processed_data['change_info'].__dict__ if processed_data['change_info'] else None
             existing_file.storage_path = str(storage_path)
             db_file = existing_file
+            # Versioning: get latest version number
+            last_version = db.query(FileVersion).filter(FileVersion.file_id == existing_file.id).order_by(FileVersion.version_number.desc()).first()
+            next_version = (last_version.version_number + 1) if last_version else 1
+            file_version = FileVersion(
+                file_id=existing_file.id,
+                version_number=next_version,
+                content=processed_data['text_content'],
+                commit_message="File updated",
+                author_id=current_user.id
+            )
+            db.add(file_version)
         else:
             # Create new file record
             db_file = RepositoryFileModel(
@@ -160,6 +171,15 @@ async def upload_file(
                 storage_path=str(storage_path)
             )
             db.add(db_file)
+            # Versioning: first version
+            file_version = FileVersion(
+                file_id=file_id,
+                version_number=1,
+                content=processed_data['text_content'],
+                commit_message="Initial upload",
+                author_id=current_user.id
+            )
+            db.add(file_version)
 
         db.commit()
         db.refresh(db_file)
@@ -278,3 +298,47 @@ async def download_file(
         filename=file_record.name if hasattr(file_record, 'name') else os.path.basename(file_path),
         media_type='application/octet-stream'
     )
+
+
+@router.get("/file/{file_id}/versions", response_model=List[FileVersionSchema])
+async def list_file_versions(
+    file_id: str,
+    db: Session = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000)
+):
+    """List all versions of a file by file_id"""
+    versions = db.query(FileVersion).filter(FileVersion.file_id == file_id).order_by(FileVersion.version_number.desc()).offset(skip).limit(limit).all()
+    return versions
+
+
+@router.post("/file/{file_id}/restore/{version_number}")
+async def restore_file_version(
+    file_id: str,
+    version_number: int,
+    current_user: UserModel = Depends(contributor_required),
+    db: Session = Depends(get_db)
+):
+    """Restore a file to a previous version by version_number"""
+    file = db.query(RepositoryFileModel).filter(RepositoryFileModel.id == file_id).first()
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    version = db.query(FileVersion).filter(FileVersion.file_id == file_id, FileVersion.version_number == version_number).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+    # Save current as new version before restoring
+    last_version = db.query(FileVersion).filter(FileVersion.file_id == file_id).order_by(FileVersion.version_number.desc()).first()
+    next_version = (last_version.version_number + 1) if last_version else 1
+    file_version = FileVersion(
+        file_id=file_id,
+        version_number=next_version,
+        content=file.content,
+        commit_message=f"Restore to version {version_number}",
+        author_id=current_user.id
+    )
+    db.add(file_version)
+    # Restore content
+    file.content = version.content
+    db.commit()
+    db.refresh(file)
+    return {"message": f"File restored to version {version_number}", "file": file.id, "current_version": next_version}

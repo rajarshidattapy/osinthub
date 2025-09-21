@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from database import get_db
-from models import MergeRequest as MergeRequestModel, User as UserModel, Repository as RepositoryModel
-from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus
+from models import MergeRequest as MergeRequestModel, User as UserModel, Repository as RepositoryModel, Comment as CommentModel, MergeRequestVersion
+from schemas import MergeRequest, MergeRequestCreate, MergeRequestUpdate, MergeRequestStatus, Comment, CommentCreate, MergeRequestVersion as MergeRequestVersionSchema
 from auth import verify_clerk_token, contributor_required
 from ai_service import AIService
 
@@ -59,7 +59,24 @@ async def create_merge_request(
     db.add(db_mr)
     db.commit()
     db.refresh(db_mr)
-    
+
+    # Versioning: first version
+    from models import MergeRequestVersion
+    mr_version = MergeRequestVersion(
+        merge_request_id=db_mr.id,
+        version_number=1,
+        title=db_mr.title,
+        description=db_mr.description,
+        status=db_mr.status,
+        ai_validation_status=db_mr.ai_validation_status,
+        ai_validation_score=db_mr.ai_validation_score,
+        ai_validation_feedback=db_mr.ai_validation_feedback,
+        ai_validation_concerns=db_mr.ai_validation_concerns,
+        ai_validation_suggestions=db_mr.ai_validation_suggestions,
+        author_id=current_user.id
+    )
+    db.add(mr_version)
+    db.commit()
     return db_mr
 
 @router.get("/", response_model=List[MergeRequest])
@@ -137,7 +154,26 @@ async def update_merge_request(
     
     db.commit()
     db.refresh(mr)
-    
+
+    # Versioning: save new version after update
+    from models import MergeRequestVersion
+    last_version = db.query(MergeRequestVersion).filter(MergeRequestVersion.merge_request_id == mr.id).order_by(MergeRequestVersion.version_number.desc()).first()
+    next_version = (last_version.version_number + 1) if last_version else 1
+    mr_version = MergeRequestVersion(
+        merge_request_id=mr.id,
+        version_number=next_version,
+        title=mr.title,
+        description=mr.description,
+        status=mr.status,
+        ai_validation_status=mr.ai_validation_status,
+        ai_validation_score=mr.ai_validation_score,
+        ai_validation_feedback=mr.ai_validation_feedback,
+        ai_validation_concerns=mr.ai_validation_concerns,
+        ai_validation_suggestions=mr.ai_validation_suggestions,
+        author_id=current_user.id
+    )
+    db.add(mr_version)
+    db.commit()
     return mr
 
 @router.post("/{mr_id}/merge")
@@ -285,3 +321,81 @@ async def validate_merge_request(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"AI validation failed: {str(e)}"
         )
+
+@router.post("/{mr_id}/comments", response_model=Comment)
+async def add_comment(
+    mr_id: str,
+    comment_data: CommentCreate,
+    current_user: UserModel = Depends(verify_clerk_token),
+    db: Session = Depends(get_db)
+):
+    """Add a comment to a merge request"""
+    mr = db.query(MergeRequestModel).filter(MergeRequestModel.id == mr_id).first()
+    if not mr:
+        raise HTTPException(status_code=404, detail="Merge request not found")
+    db_comment = CommentModel(
+        merge_request_id=mr_id,
+        author_id=current_user.id,
+        content=comment_data.content,
+        line_number=comment_data.line_number,
+        file_path=comment_data.file_path
+    )
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+@router.get("/{mr_id}/versions", response_model=List[MergeRequestVersionSchema])
+async def list_merge_request_versions(
+    mr_id: str,
+    db: Session = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000)
+):
+    """List all versions of a merge request by mr_id"""
+    versions = db.query(MergeRequestVersion).filter(MergeRequestVersion.merge_request_id == mr_id).order_by(MergeRequestVersion.version_number.desc()).offset(skip).limit(limit).all()
+    return versions
+
+@router.post("/{mr_id}/restore/{version_number}")
+async def restore_merge_request_version(
+    mr_id: str,
+    version_number: int,
+    current_user: UserModel = Depends(contributor_required),
+    db: Session = Depends(get_db)
+):
+    """Restore a merge request to a previous version by version_number"""
+    mr = db.query(MergeRequestModel).filter(MergeRequestModel.id == mr_id).first()
+    if not mr:
+        raise HTTPException(status_code=404, detail="Merge request not found")
+    version = db.query(MergeRequestVersion).filter(MergeRequestVersion.merge_request_id == mr_id, MergeRequestVersion.version_number == version_number).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+    # Save current as new version before restoring
+    last_version = db.query(MergeRequestVersion).filter(MergeRequestVersion.merge_request_id == mr_id).order_by(MergeRequestVersion.version_number.desc()).first()
+    next_version = (last_version.version_number + 1) if last_version else 1
+    mr_version = MergeRequestVersion(
+        merge_request_id=mr_id,
+        version_number=next_version,
+        title=mr.title,
+        description=mr.description,
+        status=mr.status,
+        ai_validation_status=mr.ai_validation_status,
+        ai_validation_score=mr.ai_validation_score,
+        ai_validation_feedback=mr.ai_validation_feedback,
+        ai_validation_concerns=mr.ai_validation_concerns,
+        ai_validation_suggestions=mr.ai_validation_suggestions,
+        author_id=current_user.id
+    )
+    db.add(mr_version)
+    # Restore fields
+    mr.title = version.title
+    mr.description = version.description
+    mr.status = version.status
+    mr.ai_validation_status = version.ai_validation_status
+    mr.ai_validation_score = version.ai_validation_score
+    mr.ai_validation_feedback = version.ai_validation_feedback
+    mr.ai_validation_concerns = version.ai_validation_concerns
+    mr.ai_validation_suggestions = version.ai_validation_suggestions
+    db.commit()
+    db.refresh(mr)
+    return {"message": f"Merge request restored to version {version_number}", "merge_request": mr.id, "current_version": next_version}

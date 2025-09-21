@@ -148,6 +148,39 @@ class MergeRequest(MergeRequestBase):
     class Config:
         from_attributes = True
 
+# Merge Request Version schemas
+class MergeRequestVersionBase(BaseModel):
+    merge_request_id: str
+    version_number: int
+    title: str
+    description: Optional[str] = None
+    status: Optional[str] = None
+    ai_validation_status: Optional[str] = None
+    ai_validation_score: Optional[float] = None
+    ai_validation_feedback: Optional[str] = None
+    ai_validation_concerns: Optional[List[str]] = None
+    ai_validation_suggestions: Optional[List[str]] = None
+    author_id: str
+    created_at: datetime
+
+class MergeRequestVersionCreate(BaseModel):
+    merge_request_id: str
+    title: str
+    description: Optional[str] = None
+    status: Optional[str] = None
+    ai_validation_status: Optional[str] = None
+    ai_validation_score: Optional[float] = None
+    ai_validation_feedback: Optional[str] = None
+    ai_validation_concerns: Optional[List[str]] = None
+    ai_validation_suggestions: Optional[List[str]] = None
+    author_id: str
+
+class MergeRequestVersion(MergeRequestVersionBase):
+    id: str
+    author: Optional[User] = None
+    class Config:
+        from_attributes = True
+
 # File Change schemas
 class FileChangeBase(BaseModel):
     file_path: str
@@ -204,6 +237,28 @@ class RepositoryCollaborator(RepositoryCollaboratorBase):
     user_id: str
     created_at: datetime
     user: User
+
+    class Config:
+        from_attributes = True
+
+# File Version schemas
+class FileVersionBase(BaseModel):
+    file_id: str
+    version_number: int
+    content: str
+    commit_message: str
+    author_id: str
+    created_at: datetime
+
+class FileVersionCreate(BaseModel):
+    file_id: str
+    content: str
+    commit_message: Optional[str] = None
+    author_id: str
+
+class FileVersion(FileVersionBase):
+    id: str
+    author: Optional[User] = None
 
     class Config:
         from_attributes = True
