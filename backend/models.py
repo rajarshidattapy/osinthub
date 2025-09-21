@@ -185,3 +185,52 @@ class MergeRequestVersion(Base):
 
     # Relationships
     author = relationship("User")
+
+class Commit(Base):
+    __tablename__ = "commits"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    repository_id = Column(String, ForeignKey("repositories.id"), nullable=False)
+    sha = Column(String, unique=True, nullable=False)  # Git commit SHA
+    message = Column(Text, nullable=False)
+    author_id = Column(String, ForeignKey("users.id"), nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    parent_sha = Column(String, nullable=True)  # Parent commit SHA
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    repository = relationship("Repository")
+    author = relationship("User")
+    files = relationship("CommitFile", back_populates="commit")
+
+class CommitFile(Base):
+    __tablename__ = "commit_files"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    commit_id = Column(String, ForeignKey("commits.id"), nullable=False)
+    file_id = Column(String, ForeignKey("repository_files.id"), nullable=False)
+    file_path = Column(String, nullable=False)
+    change_type = Column(String, nullable=False)  # added, modified, deleted, renamed
+    additions = Column(Integer, default=0)
+    deletions = Column(Integer, default=0)
+    diff_content = Column(Text)
+    previous_file_id = Column(String, ForeignKey("repository_files.id"), nullable=True)  # For tracking file evolution
+
+    # Relationships
+    commit = relationship("Commit", back_populates="files")
+    file = relationship("RepositoryFile", foreign_keys=[file_id])
+    previous_file = relationship("RepositoryFile", foreign_keys=[previous_file_id])
+
+class CommitGraph(Base):
+    __tablename__ = "commit_graphs"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    repository_id = Column(String, ForeignKey("repositories.id"), nullable=False)
+    graph_data = Column(JSON, nullable=False)  # Serialized graph structure
+    node_count = Column(Integer, default=0)
+    edge_count = Column(Integer, default=0)
+    last_updated = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    repository = relationship("Repository")

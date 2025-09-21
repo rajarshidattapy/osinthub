@@ -172,6 +172,50 @@ class ApiService {
     if (!response.ok) throw new Error('Failed to close merge request');
     return response.json();
   }
+
+  // Commit Graph
+  async importCommits(repositoryId: string, repoPath: string, maxCommits: number, getToken: () => Promise<string | null>) {
+    const headers = await this.getAuthHeaders(getToken);
+    const response = await fetch(`${API_BASE_URL}/repositories/${repositoryId}/commits/import`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ repo_path: repoPath, max_commits: maxCommits }),
+    });
+    if (!response.ok) throw new Error('Failed to import commits');
+    return response.json();
+  }
+
+  async getCommits(repositoryId: string, getToken: () => Promise<string | null>, params?: any) {
+    const headers = await this.getAuthHeaders(getToken);
+    const queryParams = new URLSearchParams(params).toString();
+    const response = await fetch(`${API_BASE_URL}/repositories/${repositoryId}/commits?${queryParams}`, { headers });
+    if (!response.ok) throw new Error('Failed to fetch commits');
+    return response.json();
+  }
+
+  async getCommitGraph(repositoryId: string, getToken: () => Promise<string | null>) {
+    const headers = await this.getAuthHeaders(getToken);
+    const response = await fetch(`${API_BASE_URL}/repositories/${repositoryId}/graph`, { headers });
+    if (!response.ok) throw new Error('Failed to fetch commit graph');
+    return response.json();
+  }
+
+  async generateCommitGraph(repositoryId: string, maxCommits: number, getToken: () => Promise<string | null>) {
+    const headers = await this.getAuthHeaders(getToken);
+    const response = await fetch(`${API_BASE_URL}/repositories/${repositoryId}/graph/generate?max_commits=${maxCommits}`, {
+      method: 'POST',
+      headers,
+    });
+    if (!response.ok) throw new Error('Failed to generate commit graph');
+    return response.json();
+  }
+
+  async getGraphStatistics(repositoryId: string, getToken: () => Promise<string | null>) {
+    const headers = await this.getAuthHeaders(getToken);
+    const response = await fetch(`${API_BASE_URL}/repositories/${repositoryId}/graph/statistics`, { headers });
+    if (!response.ok) throw new Error('Failed to fetch graph statistics');
+    return response.json();
+  }
 }
 
 export const apiService = new ApiService();

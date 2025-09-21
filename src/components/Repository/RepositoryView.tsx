@@ -6,11 +6,14 @@ import {
   Calendar,
   Users,
   Globe,
-  Lock
+  Lock,
+  GitCommit
 } from 'lucide-react';
 import { Repository } from '../../types';
 import { FileExplorer } from '../Files/FileExplorer';
 import { FileEditor } from '../Files/FileEditor';
+import { CommitGraphViewer } from '../CommitGraph/CommitGraphViewer';
+import { CommitImportModal } from '../CommitGraph/CommitImportModal';
 
 interface RepositoryViewProps {
   repository: Repository;
@@ -26,7 +29,9 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
   onViewMergeRequests
 }) => {
   const [selectedFile, setSelectedFile] = useState(repository.files[0]);
-  const [activeTab, setActiveTab] = useState<'code' | 'issues' | 'pulls' | 'security' | 'insights'>('code');
+  const [activeTab, setActiveTab] = useState<'code' | 'issues' | 'pulls' | 'security' | 'insights' | 'commits'>('code');
+  const [showCommitGraph, setShowCommitGraph] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -112,6 +117,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
               { id: 'code', label: 'Code', icon: FileText },
               { id: 'issues', label: 'Issues', count: 0 },
               { id: 'pulls', label: 'Pull Requests', count: 1 },
+              { id: 'commits', label: 'Commits', icon: GitCommit },
               { id: 'security', label: 'Security' },
               { id: 'insights', label: 'Insights' }
             ].map(tab => (
@@ -120,6 +126,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                 onClick={() => {
                   setActiveTab(tab.id as any);
                   if (tab.id === 'pulls') onViewMergeRequests();
+                  if (tab.id === 'commits') setShowCommitGraph(true);
                 }}
                 className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
                   activeTab === tab.id 
@@ -152,6 +159,71 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
             
             <div className="lg:col-span-2">
               <FileEditor file={selectedFile} />
+            </div>
+          </div>
+        )}
+
+        {/* Commit Graph Modal */}
+        {showCommitGraph && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+              <CommitGraphViewer
+                repositoryId={repository.id}
+                onClose={() => {
+                  setShowCommitGraph(false);
+                  setActiveTab('code');
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Commit Import Modal */}
+        {showImportModal && (
+          <CommitImportModal
+            isOpen={showImportModal}
+            onClose={() => setShowImportModal(false)}
+            repositoryId={repository.id}
+            onImportComplete={() => {
+              setShowImportModal(false);
+              setShowCommitGraph(true);
+            }}
+          />
+        )}
+
+        {/* Commits Tab Content */}
+        {activeTab === 'commits' && (
+          <div className="space-y-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <GitCommit className="w-5 h-5 text-green-400" />
+                  <h3 className="text-lg font-semibold text-white">Commit History</h3>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setShowImportModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <GitCommit className="w-4 h-4" />
+                    <span>Import Commits</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCommitGraph(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <GitCommit className="w-4 h-4" />
+                    <span>View Graph</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="text-gray-400 text-center py-8">
+                <GitCommit className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <h4 className="text-lg font-semibold mb-2">No Commits Found</h4>
+                <p className="mb-4">This repository doesn't have any commits yet.</p>
+                <p className="text-sm">Import commits from a local git repository to visualize the commit history and file relationships.</p>
+              </div>
             </div>
           </div>
         )}

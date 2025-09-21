@@ -25,4 +25,6 @@ public
 .env
 public
 backend/__pycache__
+backend/venv/
 osnit/
+venv/

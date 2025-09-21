@@ -81,3 +81,79 @@ export interface AuditEntry {
   details: Record<string, any>;
   repository: Repository;
 }
+
+export interface Commit {
+  id: string;
+  sha: string;
+  message: string;
+  timestamp: string;
+  parent_sha?: string;
+  author: User;
+  repository_id: string;
+  created_at: string;
+}
+
+export interface CommitFile {
+  id: string;
+  file_path: string;
+  change_type: 'added' | 'modified' | 'deleted' | 'renamed';
+  additions: number;
+  deletions: number;
+  diff_content?: string;
+  commit_id: string;
+  file_id: string;
+  previous_file_id?: string;
+}
+
+export interface CommitGraph {
+  id: string;
+  repository_id: string;
+  graph_data: {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+    layout: Record<string, { x: number; y: number; level: number }>;
+  };
+  node_count: number;
+  edge_count: number;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface GraphNode {
+  id: string;
+  type: 'commit' | 'file';
+  label: string;
+  metadata: {
+    sha?: string;
+    message?: string;
+    author?: string;
+    timestamp?: string;
+    file_path?: string;
+    change_type?: string;
+    additions?: number;
+    deletions?: number;
+    commit_sha?: string;
+  };
+  position?: {
+    x: number;
+    y: number;
+    level: number;
+  };
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  type: string;
+  metadata: {
+    relationship: string;
+    change_type?: string;
+  };
+}
+
+export interface GraphStatistics {
+  total_commits: number;
+  total_file_changes: number;
+  unique_files: number;
+  average_files_per_commit: number;
+}
