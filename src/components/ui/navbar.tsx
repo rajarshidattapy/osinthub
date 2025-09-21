@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { Menu, X, GitFork, Github } from "lucide-react"
+import { Menu, X, Github } from "lucide-react"
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react"
 import { Link } from "react-router-dom"
 
@@ -10,7 +10,7 @@ const navLinks = [
   { name: "Features", href: "#features" },
   { name: "How It Works", href: "#how-it-works" },
   { name: "Docs", href: "/docs" },
-  { name: "Community", href: "https://github.com/rajarshidayyapy/osinthub", external: true },
+  { name: "Community", href: "https://github.com/rajarshidattapy/osinthub", external: true },
 ]
 
 export function LandingNavbar() {
@@ -63,7 +63,7 @@ export function LandingNavbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="https://github.com/AdityaP700"
+            <a href="https://github.com/rajarshidattapy/osinthub"
                target="_blank"
                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-200 border border-gray-700 rounded-full hover:border-indigo-500 transition-colors">
               <Github className="w-4 h-4" /> GitHub
@@ -141,7 +141,7 @@ export function LandingNavbar() {
                 ))}
 
                 <div className="pt-6 space-y-4">
-                  <a href="https://github.com/AdityaP700"
+                  <a href="https://github.com/rajarshidattapy/osinthub"
                      target="_blank"
                      className="flex items-center justify-center gap-2 w-full px-5 py-3 
                                 text-base text-gray-200 border border-gray-700 rounded-full 
