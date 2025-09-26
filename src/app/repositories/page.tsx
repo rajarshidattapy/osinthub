@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { authenticatedFetch } from '@/lib/api';
 import { Plus, Search, Filter, GitBranch, Users, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { useLayout } from '@/contexts/LayoutContext';
 import { CreateRepositoryModal } from '@/components/CreateRepository/CreateRepositoryModal';
 
 interface Repository {
@@ -20,6 +21,8 @@ interface Repository {
 
 export default function RepositoriesPage() {
   const { getToken, isLoaded } = useAuth();
+  const { setTitle } = useLayout();
+  useEffect(()=>{ setTitle('Repositories'); }, [setTitle]);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

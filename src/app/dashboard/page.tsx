@@ -37,7 +37,8 @@ export default function DashboardHomePage() {
   const [investigatorBars, setInvestigatorBars] = useState<{ id: string; name: string; avatar: string; closedCount: number; avgTimeDays: number }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { setRightRail } = useLayout(); 
+  const { setRightRail, setTitle } = useLayout(); 
+  useEffect(() => { setTitle('Dashboard'); }, [setTitle]);
   const inFlight = useRef(false);
 
   useEffect(() => {

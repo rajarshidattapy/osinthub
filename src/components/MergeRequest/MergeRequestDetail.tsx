@@ -17,11 +17,17 @@ import { DiffViewer } from './DiffViewer';
 interface MergeRequestDetailProps {
   mergeRequest: MergeRequest;
   onBack: () => void;
+  onMerge?: () => void | Promise<void>;
+  onClose?: () => void | Promise<void>;
+  onValidate?: () => void | Promise<void>;
 }
 
 export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({ 
   mergeRequest, 
-  onBack 
+  onBack,
+  onMerge,
+  onClose,
+  onValidate
 }) => {
   const [activeTab, setActiveTab] = useState<'conversation' | 'files' | 'commits'>('conversation');
 
@@ -77,14 +83,19 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
             <div className="flex items-center space-x-2">
               {mergeRequest.status === 'open' && (
                 <>
-                  <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition-colors">
+                  <button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition-colors">
                     Close
                   </button>
-                  <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-1 transition-colors">
+                  <button onClick={onMerge} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-1 transition-colors">
                     <Merge className="w-4 h-4" />
                     <span>Merge</span>
                   </button>
                 </>
+              )}
+              {onValidate && (
+                <button onClick={onValidate} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors ml-2">
+                  Re-Validate
+                </button>
               )}
             </div>
           </div>
@@ -137,25 +148,28 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
         {/* Navigation Tabs */}
         <div className="border-b border-gray-700 mb-6">
           <nav className="flex space-x-8">
-            {[
-              { id: 'conversation', label: 'Conversation', icon: MessageSquare, count: mergeRequest.comments.length },
-              { id: 'files', label: 'Files Changed', count: mergeRequest.changes.length },
-              { id: 'commits', label: 'Commits', count: 1 }
-            ].map(tab => (
+            {(
+              [
+                { id: 'conversation', label: 'Conversation', icon: MessageSquare, count: mergeRequest.comments.length },
+                { id: 'files', label: 'Files Changed', count: mergeRequest.changes.length },
+                { id: 'commits', label: 'Commits', count: 1 }
+              ] as const
+            ).map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
-                  activeTab === tab.id 
-                    ? 'border-orange-500 text-white' 
-                    : 'border-transparent text-gray-400 hover:text-white'
+                  activeTab === tab.id ? 'border-orange-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
                 }`}
               >
-                {tab.icon && <tab.icon className="w-4 h-4" />}
+                {(() => {
+                  type TabWithIcon = { icon?: React.ComponentType<{ className?: string }> };
+                  const maybe = tab as TabWithIcon;
+                  const Icon = maybe.icon;
+                  return Icon ? <Icon className="w-4 h-4" /> : null;
+                })()}
                 <span>{tab.label}</span>
-                <span className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">
-                  {tab.count}
-                </span>
+                <span className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">{tab.count}</span>
               </button>
             ))}
           </nav>
