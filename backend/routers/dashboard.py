@@ -27,34 +27,56 @@ async def get_dashboard_stats(
     
     # --- 1. KPI Data ---
     
-    # Ingested Items (24h) - Let's define this as new repositories created in the last 24h
-    twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
-    ingested_items_count = db.query(RepositoryModel).filter(
-        RepositoryModel.created_at >= twenty_four_hours_ago
-    ).count()
+    # Ingested Items (24h) - new repositories created in the last 24h vs previous 24h
+    now_utc_naive = datetime.utcnow()
+    twenty_four_hours_ago = now_utc_naive - timedelta(hours=24)
+    forty_eight_hours_ago = now_utc_naive - timedelta(hours=48)
+    ingested_curr = db.query(RepositoryModel).filter(RepositoryModel.created_at >= twenty_four_hours_ago).count()
+    ingested_prev = db.query(RepositoryModel).filter(RepositoryModel.created_at >= forty_eight_hours_ago, RepositoryModel.created_at < twenty_four_hours_ago).count()
 
-    # Active Cases - Repositories updated in the last 7 days
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
-    active_cases_count = db.query(RepositoryModel).filter(
-        RepositoryModel.updated_at >= seven_days_ago
-    ).count()
+    def pct_delta(curr: int, prev: int) -> tuple[str, bool]:
+        if prev == 0:
+            if curr == 0:
+                return "+0%", True
+            return "+100%", True
+        change = ((curr - prev) / prev) * 100
+        sign = "+" if change >= 0 else ""
+        return f"{sign}{change:.1f}%", change >= 0
 
-    # Open Merge Requests
-    open_merge_requests_count = db.query(MergeRequestModel).filter(
-        MergeRequestModel.status == 'open'
-    ).count()
-    
-    # For Avg. Lead Time and Investigator Efficiency, we'll use dummy data for now
-    # as the calculation can be complex.
-    avg_lead_time = "3.4d" 
-    investigator_efficiency = 82
+    ingested_delta, ingested_positive = pct_delta(ingested_curr, ingested_prev)
+
+    # Active Cases - repositories updated in last 7 days vs previous 7-day window
+    seven_days_ago = now_utc_naive - timedelta(days=7)
+    fourteen_days_ago = now_utc_naive - timedelta(days=14)
+    active_curr = db.query(RepositoryModel).filter(RepositoryModel.updated_at >= seven_days_ago).count()
+    active_prev = db.query(RepositoryModel).filter(RepositoryModel.updated_at >= fourteen_days_ago, RepositoryModel.updated_at < seven_days_ago).count()
+    active_delta, active_positive = pct_delta(active_curr, active_prev)
+
+    # Open Merge Requests - compare current open count vs count 24h ago snapshot (approximation: count opened before 24h that are still open + opened within)
+    open_curr = db.query(MergeRequestModel).filter(MergeRequestModel.status == 'open').count()
+    # Approx previous: open MRs that were created before 24h ago and still open OR closed within last 24h (gives rough baseline)
+    open_prev = db.query(MergeRequestModel).filter(MergeRequestModel.created_at < twenty_four_hours_ago, MergeRequestModel.status == 'open').count()
+    open_delta, open_positive = pct_delta(open_curr, open_prev)
+
+    # Avg Lead Time (dummy) & Investigator Efficiency (dummy) but compute a mock delta relative to baseline constants
+    avg_lead_time_value = 3.4  # days
+    avg_lead_time_prev = 3.7
+    lead_change = avg_lead_time_value - avg_lead_time_prev
+    lead_delta = f"{lead_change:+.1f}d"
+    lead_positive = lead_change <= 0  # lower lead time is good
+
+    investigator_efficiency = 82  # percent
+    investigator_eff_prev = 78
+    eff_change = investigator_efficiency - investigator_eff_prev
+    eff_delta = f"{eff_change:+d}" if abs(eff_change) >= 1 else "+0"
+    eff_positive = eff_change >= 0
 
     kpis = {
-        "ingestedItems": {"value": ingested_items_count, "delta": "+8.2%", "positive": True},
-        "activeCases": {"value": active_cases_count, "delta": "-5.1%", "positive": False},
-        "openMergeRequests": {"value": open_merge_requests_count, "delta": "+2", "positive": True},
-        "avgLeadTime": {"value": avg_lead_time, "delta": "-0.3d", "positive": True},
-        "investigatorEfficiency": {"value": investigator_efficiency, "delta": "+4", "positive": True},
+        "ingestedItems": {"value": ingested_curr, "delta": ingested_delta, "positive": ingested_positive},
+        "activeCases": {"value": active_curr, "delta": active_delta, "positive": active_positive},
+        "openMergeRequests": {"value": open_curr, "delta": open_delta, "positive": open_positive},
+        "avgLeadTime": {"value": f"{avg_lead_time_value:.1f}d", "delta": lead_delta, "positive": lead_positive},
+        "investigatorEfficiency": {"value": investigator_efficiency, "delta": eff_delta, "positive": eff_positive},
     }
 
     # --- 2. Activity Timeline ---
