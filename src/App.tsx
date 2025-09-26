@@ -11,7 +11,6 @@ import RepositoriesPage from './app/repositories/page';
 import SingleRepositoryPage from './app/repositories/[repoId]/page';
 import MergeRequestsPage from './app/merge-requests/page';
 
-// Placeholder for pages you haven't built yet
 const PlaceholderPage = ({ title }: { title: string }) => <div className="p-6 text-white">{title} Page - Coming Soon</div>;
 
 export default function App() {

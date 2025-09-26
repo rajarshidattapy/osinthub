@@ -7,8 +7,8 @@ import { Home, FolderGit2, Files, GitPullRequest, Layers3, Settings, Search } fr
 import { useState } from "react";
 
 const nav = [
-  // IMPORTANT: Changed href to '/' for the dashboard link to match your App.tsx route
   { to: "/dashboard", label: "Dashboard", icon: Home }, 
+  { to: "/", label: "Landing", icon: Layers3 },
   { to: "/repositories", label: "Repositories", icon: FolderGit2 },
   { to: "/case-files", label: "Case Files", icon: Files },
   { to: "/merge-requests", label: "Merge Requests", icon: GitPullRequest },

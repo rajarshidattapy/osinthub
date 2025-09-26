@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from database import get_db
 from models import (
@@ -62,16 +62,31 @@ async def get_dashboard_stats(
     recent_activity = db.query(AuditEntry).order_by(AuditEntry.created_at.desc()).limit(10).all()
     
     # Format activity data for the frontend
-    activity_timeline = [
-        {
+    now_utc = datetime.now(timezone.utc)
+    activity_timeline = []
+    for entry in recent_activity:
+        created = entry.created_at
+        # Normalize to aware UTC
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        # Some DB backends may return offset-aware already; ensure conversion
+        created_utc = created.astimezone(timezone.utc)
+        delta = now_utc - created_utc
+        hours = int(delta.total_seconds() // 3600)
+        if hours < 1:
+            when = "<1h ago"
+        elif hours < 24:
+            when = f"{hours}h ago"
+        else:
+            days = hours // 24
+            when = f"{days}d ago"
+        activity_timeline.append({
             "id": str(entry.id),
-            "type": "upload", # This is a placeholder, you'd need a way to map action to type
+            "type": "upload",  # TODO: derive from action
             "actor": entry.user.username if entry.user else "Unknown",
-            "when": f"{(datetime.utcnow() - entry.created_at).seconds // 3600}h ago", # Simplified time ago
-            "text": entry.action.replace("_", " ") # Example transformation
-        }
-        for entry in recent_activity
-    ]
+            "when": when,
+            "text": entry.action.replace("_", " ")
+        })
 
     # --- 3. Chart Data (Using Dummy Data for now) ---
     # Generating realistic chart data from the DB can be complex. We'll start with mock data.
