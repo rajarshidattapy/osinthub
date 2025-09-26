@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Clock,
-  MessageSquare,
-  User,
-  Calendar,
-  GitCommit,
-  Merge
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, AlertTriangle, Clock, MessageSquare, User, Calendar, GitCommit, Merge } from 'lucide-react';
 import { MergeRequest } from '../../types';
 import { DiffViewer } from './DiffViewer';
 
@@ -51,7 +40,7 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-6">
+    <div className="py-4">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center space-x-4 mb-6">
           <button 
@@ -64,7 +53,7 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
         </div>
 
         {/* Header */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+  <div className="card p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-white mb-2">{mergeRequest.title}</h1>
@@ -83,17 +72,17 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
             <div className="flex items-center space-x-2">
               {mergeRequest.status === 'open' && (
                 <>
-                  <button onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition-colors">
+                  <button onClick={onClose} className="btn btn-outline border-red-600 text-red-300 hover:bg-red-600/20">
                     Close
                   </button>
-                  <button onClick={onMerge} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm flex items-center space-x-1 transition-colors">
+                  <button onClick={onMerge} className="btn btn-primary flex items-center space-x-1">
                     <Merge className="w-4 h-4" />
                     <span>Merge</span>
                   </button>
                 </>
               )}
               {onValidate && (
-                <button onClick={onValidate} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors ml-2">
+                <button onClick={onValidate} className="btn btn-secondary">
                   Re-Validate
                 </button>
               )}
@@ -112,7 +101,7 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
         </div>
 
         {/* AI Validation Panel */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+  <div className="card p-6 mb-6">
           <div className="flex items-center space-x-3 mb-4">
             {getAIStatusIcon()}
             <h3 className="text-lg font-semibold text-white">
@@ -146,7 +135,7 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-700 mb-6">
+  <div className="border-b border-gray-800 mb-6">
           <nav className="flex space-x-8">
             {(
               [
@@ -158,8 +147,8 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
-                  activeTab === tab.id ? 'border-orange-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
+                className={`flex items-center space-x-2 pb-3 border-b-2 text-sm font-medium transition-colors ${
+                  activeTab === tab.id ? 'border-accent-primary text-fg' : 'border-transparent text-muted hover:text-fg'
                 }`}
               >
                 {(() => {
@@ -179,7 +168,7 @@ export const MergeRequestDetail: React.FC<MergeRequestDetailProps> = ({
         {activeTab === 'conversation' && (
           <div className="space-y-6">
             {mergeRequest.comments.map(comment => (
-              <div key={comment.id} className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <div key={comment.id} className="card p-6">
                 <div className="flex items-start space-x-3">
                   <img
                     src={comment.author.avatar}

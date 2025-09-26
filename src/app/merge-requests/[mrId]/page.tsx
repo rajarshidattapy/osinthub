@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { MergeRequestDetail } from "@/components/MergeRequest/MergeRequestDetail";
 import { MergeRequest, Repository, User } from '@/types';
+import { apiService } from '@/services/api';
 import { useLayout } from '@/contexts/LayoutContext';
 
 export default function SingleMergeRequestPage() {
@@ -133,30 +134,66 @@ export default function SingleMergeRequestPage() {
     getMergeRequestData();
   }, [isLoaded, getToken, mrId, mapMR, setTitle]);
 
-  const performAction = useCallback(async (path: string, optimistic?: Partial<MergeRequest>) => {
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const refreshMR = useCallback(async () => {
     if (!mrId) return;
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/merge-requests/${mrId}/${path}`, {
-        method: 'POST',
+      const res = await fetch(`http://localhost:8000/api/merge-requests/${mrId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error(`Failed to ${path} merge request`);
-      if (optimistic && mergeRequest) {
-        setMergeRequest({ ...mergeRequest, ...optimistic });
-      } else {
-        // Refetch to sync
+      if (res.ok) {
         const data: RawMR = await res.json();
-        if (data.id) setMergeRequest(mapMR(data));
+        setMergeRequest(mapMR(data));
       }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to refresh MR', e);
     }
-  }, [getToken, mrId, mergeRequest, mapMR]);
+  }, [getToken, mrId, mapMR]);
 
-  const handleMerge = () => performAction('merge', { status: 'merged' } as Partial<MergeRequest>);
-  const handleClose = () => performAction('close', { status: 'closed' } as Partial<MergeRequest>);
-  const handleValidate = () => performAction('validate');
+  const handleMerge = async () => {
+    if (!mergeRequest) return;
+    setActionError(null);
+    setActionLoading('merge');
+    try {
+      await apiService.mergeMergeRequest(mergeRequest.id, getToken);
+      await refreshMR();
+    } catch (e: any) {
+      setActionError(e?.detail?.message || e.message || 'Merge failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleClose = async () => {
+    if (!mergeRequest) return;
+    setActionError(null);
+    setActionLoading('close');
+    try {
+      await apiService.closeMergeRequest(mergeRequest.id, getToken);
+      await refreshMR();
+    } catch (e: any) {
+      setActionError(e?.detail?.message || e.message || 'Close failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleValidate = async () => {
+    if (!mergeRequest) return;
+    setActionError(null);
+    setActionLoading('validate');
+    try {
+      await apiService.validateMergeRequest(mergeRequest.id, getToken);
+      await refreshMR();
+    } catch (e: any) {
+      setActionError(e?.detail?.message || e.message || 'Validation failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   if (isLoading) return <p className="p-4 text-gray-400">Loading merge request...</p>;
   if (error) return <p className="p-4 text-red-400">Error: {error}</p>;
@@ -165,12 +202,19 @@ export default function SingleMergeRequestPage() {
   const handleBack = () => navigate('/merge-requests');
 
   return (
-    <MergeRequestDetail
-      mergeRequest={mergeRequest}
-      onBack={handleBack}
-      onMerge={handleMerge}
-      onClose={handleClose}
-      onValidate={handleValidate}
-    />
+    <div>
+      {actionError && (
+        <div className="mx-4 mb-4 p-3 rounded bg-red-900/40 border border-red-700 text-red-200 text-sm">
+          {actionError}
+        </div>
+      )}
+      <MergeRequestDetail
+        mergeRequest={mergeRequest}
+        onBack={handleBack}
+        onMerge={actionLoading==='merge'? undefined : handleMerge}
+        onClose={actionLoading==='close'? undefined : handleClose}
+        onValidate={actionLoading==='validate'? undefined : handleValidate}
+      />
+    </div>
   );
 }

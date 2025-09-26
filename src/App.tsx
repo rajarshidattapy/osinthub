@@ -10,6 +10,7 @@ import DashboardHomePage from './app/dashboard/page';
 import RepositoriesPage from './app/repositories/page';
 import SingleRepositoryPage from './app/repositories/[repoId]/page';
 import MergeRequestsPage from './app/merge-requests/page';
+import SingleMergeRequestPage from './app/merge-requests/[mrId]/page';
 
 const PlaceholderPage = ({ title }: { title: string }) => <div className="p-6 text-white">{title} Page - Coming Soon</div>;
 
@@ -24,7 +25,8 @@ export default function App() {
         <Route path="/dashboard" element={<ProtectedRoute><DashboardHomePage /></ProtectedRoute>} />
         <Route path="/repositories" element={<ProtectedRoute><RepositoriesPage /></ProtectedRoute>} />
         <Route path="/repositories/:repoId" element={<ProtectedRoute><SingleRepositoryPage /></ProtectedRoute>} />
-        <Route path="/merge-requests" element={<ProtectedRoute><MergeRequestsPage /></ProtectedRoute>} />
+  <Route path="/merge-requests" element={<ProtectedRoute><MergeRequestsPage /></ProtectedRoute>} />
+  <Route path="/merge-requests/:mrId" element={<ProtectedRoute><SingleMergeRequestPage /></ProtectedRoute>} />
         
         {/* Add placeholders for other sidebar links */}
         <Route path="/case-files" element={<ProtectedRoute><PlaceholderPage title="Case Files" /></ProtectedRoute>} />

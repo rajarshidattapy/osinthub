@@ -15,8 +15,30 @@ class EnhancedAIService:
             raise ValueError("GOOGLE_API_KEY environment variable is required")
 
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(os.getenv("GOOGLE_GEMINI_MODEL", "gemini-pro"))
+        self.model = genai.GenerativeModel(os.getenv("GOOGLE_GEMINI_MODEL", "models/gemini-1.5-flash-8b-latest"))
         self.document_parser = DocumentParser()
+
+    async def validate_merge_request(
+        self,
+        title: str,
+        description: str,
+        file_changes: List[Dict],
+        source_repo_description: str,
+        target_repo_description: str
+    ) -> Dict:
+        """Backward-compatible wrapper used by routers.
+
+        Currently delegates to validate_merge_request_with_documents without document diff enrichment.
+        Keeping the simple signature to avoid changing existing router code.
+        """
+        return await self.validate_merge_request_with_documents(
+            title=title,
+            description=description,
+            file_changes=file_changes,
+            source_repo_description=source_repo_description,
+            target_repo_description=target_repo_description,
+            document_changes=None
+        )
 
     async def validate_merge_request_with_documents(
             self,
