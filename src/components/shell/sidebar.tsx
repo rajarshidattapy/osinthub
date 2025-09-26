@@ -83,7 +83,14 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto p-3">
-        <button className="w-full btn-accent rounded-md py-2 text-sm font-medium shadow-sm" aria-label="New Case">
+        <button
+          onClick={() => {
+            // Dispatch a global custom event so pages can react (repositories page listens to open modal)
+            window.dispatchEvent(new CustomEvent('open-create-repository'));
+          }}
+          className="w-full btn-accent rounded-md py-2 text-sm font-medium shadow-sm"
+          aria-label="New Case"
+        >
           {collapsed ? <Files className="mx-auto h-4 w-4" /> : 'New Case'}
         </button>
       </div>

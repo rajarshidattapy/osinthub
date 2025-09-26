@@ -32,6 +32,13 @@ export default function RepositoriesPage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createdRepo, setCreatedRepo] = useState<Repository | null>(null);
 
+  // Listen for global create event BEFORE any conditional returns
+  useEffect(() => {
+    const handler = () => setShowCreateModal(true);
+    window.addEventListener('internal-open-create-repository', handler);
+    return () => window.removeEventListener('internal-open-create-repository', handler);
+  }, []);
+
   useEffect(() => {
     if (!isLoaded) return;
 

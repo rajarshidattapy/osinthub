@@ -1,6 +1,7 @@
 // src/App.tsx
 
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
 // Import your pages
@@ -42,7 +43,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     <>
       <SignedIn>
         <DashboardLayout>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </DashboardLayout>
       </SignedIn>
       <SignedOut>
