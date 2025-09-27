@@ -32,7 +32,7 @@ export function ProductShowcaseSection() {
                         {/* The image container with glassmorphism styling */}
                         <div className="bg-gray-900/50 backdrop-blur-xl p-2 sm:p-3 border border-white/10 rounded-xl shadow-2xl shadow-black/40">
                             <img 
-                                src="/Dashboard.png" 
+                                src="/dashboard.png" 
                                 alt="OSINT Hub Dashboard" 
                                 className="w-full h-auto rounded-lg"
                                 loading="lazy"

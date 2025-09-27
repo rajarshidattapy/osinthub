@@ -16,7 +16,7 @@ class EnhancedAIService:
             raise ValueError("GOOGLE_API_KEY environment variable is required")
 
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(os.getenv("GOOGLE_GEMINI_MODEL", "models/gemini-1.5-flash-8b-latest"))
+        self.model = genai.GenerativeModel(os.getenv("GOOGLE_GEMINI_MODEL", "models/gemini-pro"))
         self.document_parser = DocumentParser()
 
     # ===== Legal Domain Prototype Methods (mock now, AI later) =====

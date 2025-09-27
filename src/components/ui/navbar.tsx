@@ -32,7 +32,7 @@ export function LandingNavbar() {
           >
             <Link to="/" className="flex items-center space-x-3">
 <img
-    src="/assets/logo1.png"   // make sure path is correct
+    src="/ui.png"
     alt="OSINT Hub Logo"
     className="w-10 h-8 drop-shadow-md"
   /><span className="text-xl font-bold tracking-wide hidden sm:block text-white">

@@ -12,7 +12,7 @@ const testimonials = [
       "OSINT Hub has fundamentally changed how our team collaborates on threat intelligence. The version control and AI validation are game-changers for accuracy.",
     name: "A. Kim",
     title: "Lead Threat Analyst, CyberSec Firm",
-    avatar: "assets/person2.webp",
+    avatar: "/image.png",
     position: { top: "30%", left: "15%" },
   },
   {
@@ -21,7 +21,7 @@ const testimonials = [
       "The collaborative features make cross-team investigations seamless. We've reduced our research time by 40% since implementing OSINT Hub.",
     name: "Maria Santos",
     title: "Senior Investigative Journalist",
-    avatar: "/person2.webp",
+    avatar: "/santos.jpeg",
     position: { bottom: "15%", left: "30%" },
   },
   {
@@ -30,7 +30,7 @@ const testimonials = [
       "Version control for intelligence data was something we never knew we needed until we had it. Now we can't imagine working without it.",
     name: "Dr. James Chen",
     title: "Research Director, Digital Forensics Lab",
-    avatar: "assets/images.jpeg",
+    avatar: "/chen.jpg",
     position: { top: "15%", right: "40%" },
   },
   {
@@ -39,7 +39,7 @@ const testimonials = [
       "The AI-powered validation catches errors and duplications that would take us hours to find manually. It's like having an extra analyst on the team.",
     name: "Sarah Mitchell",
     title: "OSINT Specialist, Government Agency",
-    avatar: "assets/testimonial1.jpg",
+    avatar: "/dd.jpeg",
     position: { top: "30%", right: "15%" },
   },
   {
@@ -48,7 +48,7 @@ const testimonials = [
       "OSINT Hub's security features give us the confidence to handle sensitive investigations. The role-based access is perfectly implemented.",
     name: "Alex Rodriguez",
     title: "Security Consultant, Fortune 500",
-    avatar: "assets/thumbs-up.jpg",
+    avatar: "/alex.jpg",
     position: { bottom: "20%", right: "15%" },
   },
 ];
@@ -129,7 +129,7 @@ export function TestimonialsSection() {
         {/* Background dotted map */}
         <div className="relative w-full max-w-6xl mx-auto">
           <motion.img
-            src="/dottMap_inverted.jpg"
+            src="/map.jpg"
             alt="Dotted World Map"
             className="w-full h-[300px] sm:h-[400px] lg:h-[600px] object-cover opacity-20 mix-blend-luminosity"
             initial={{ opacity: 0 }}

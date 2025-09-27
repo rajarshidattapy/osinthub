@@ -75,7 +75,7 @@ export function FooterSection() {
           <div className="flex justify-center mb-6">
             <div className="w-30 h-16 flex items-center justify-center rounded-2xl">
               <img
-    src="/assets/logo1.png"   // make sure path is correct
+    src="/ui.png"
     alt="OSINT Hub Logo"
     className="w-20 h-16 drop-shadow-md"
   />
