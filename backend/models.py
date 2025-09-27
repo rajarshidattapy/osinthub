@@ -106,6 +106,17 @@ class MergeRequest(Base):
     comments = relationship("Comment", back_populates="merge_request")
     file_changes = relationship("FileChange", back_populates="merge_request")
 
+    # Provide nested structure expected by Pydantic schema (schemas.MergeRequest.ai_validation)
+    @property
+    def ai_validation(self):
+        return {
+            "status": self.ai_validation_status or "pending",
+            "score": float(self.ai_validation_score or 0.0),
+            "feedback": self.ai_validation_feedback or "",
+            "concerns": self.ai_validation_concerns or [],
+            "suggestions": self.ai_validation_suggestions or []
+        }
+
 class FileChange(Base):
     __tablename__ = "file_changes"
     

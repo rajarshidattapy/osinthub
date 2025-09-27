@@ -4,7 +4,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { authenticatedFetch } from '@/lib/api';
-import { Plus, Search, Filter, GitBranch, Users, Calendar } from 'lucide-react';
+import { Plus, Search, Filter, GitBranch, Users, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { useLayout } from '@/contexts/LayoutContext';
+import { CreateRepositoryModal } from '@/components/CreateRepository/CreateRepositoryModal';
 
 interface Repository {
   id: string;
@@ -19,11 +21,23 @@ interface Repository {
 
 export default function RepositoriesPage() {
   const { getToken, isLoaded } = useAuth();
+  const { setTitle } = useLayout();
+  useEffect(()=>{ setTitle('Repositories'); }, [setTitle]);
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createdRepo, setCreatedRepo] = useState<Repository | null>(null);
+
+  // Listen for global create event BEFORE any conditional returns
+  useEffect(() => {
+    const handler = () => setShowCreateModal(true);
+    window.addEventListener('internal-open-create-repository', handler);
+    return () => window.removeEventListener('internal-open-create-repository', handler);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -87,6 +101,57 @@ export default function RepositoriesPage() {
       </div>
     );
   }
+
+  interface CreateRepoForm { name: string; description: string; isPrivate: boolean; template?: string }
+  const handleCreateRepository = async (data: CreateRepoForm) => {
+    if (!isLoaded) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token');
+      const res = await fetch('http://localhost:8000/api/repositories/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: data.name,
+          description: data.description,
+          is_private: data.isPrivate
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({detail:'Failed'}));
+        throw new Error(err.detail || 'Failed creating repository');
+      }
+      const created = await res.json();
+      // Map backend fields to this page's Repository interface shape
+      const mapped: Repository = {
+        id: created.id,
+        name: created.name,
+        description: created.description || '',
+        owner: created.owner?.username || 'You',
+        collaborators: created.collaborators ? created.collaborators.length : 1,
+        lastUpdated: created.updated_at || created.updatedAt || created.created_at || created.createdAt,
+        isPrivate: created.is_private ?? created.isPrivate ?? false,
+        language: 'N/A'
+      };
+      setRepositories(prev => [mapped, ...prev]);
+      setCreatedRepo(mapped);
+      setShowCreateModal(false);
+      // Navigate directly to the new repository after a short delay so user sees toast
+      setTimeout(()=>{
+        window.location.href = `/repositories/${mapped.id}`;
+      }, 1200);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      setCreateError(msg);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="app-container">
@@ -193,6 +258,37 @@ export default function RepositoriesPage() {
               >
                 Create Your First Repository
               </button>
+            )}
+          </div>
+        )}
+        {/* Create Repository Modal */}
+        <CreateRepositoryModal 
+          isOpen={showCreateModal} 
+          onClose={()=>{ if(!creating){ setShowCreateModal(false); setCreateError(null); } }}
+          onSubmit={handleCreateRepository}
+          isLoading={creating}
+        />
+        {/* Creation feedback */}
+        {(createdRepo || createError) && (
+          <div className="fixed bottom-4 right-4 space-y-2 w-80">
+            {createdRepo && (
+              <div className="flex items-start space-x-2 p-3 rounded-lg bg-green-900/30 border border-green-700 text-sm">
+                <CheckCircle className="w-4 h-4 text-green-400 mt-0.5" />
+                <div>
+                  <p className="text-green-300 font-medium">Repository Created</p>
+                  <p className="text-green-200/80">{createdRepo.name}</p>
+                </div>
+              </div>
+            )}
+            {createError && (
+              <div className="flex items-start space-x-2 p-3 rounded-lg bg-red-900/30 border border-red-700 text-sm">
+                <XCircle className="w-4 h-4 text-red-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-red-300 font-medium">Creation Failed</p>
+                  <p className="text-red-200/80">{createError}</p>
+                </div>
+                <button onClick={()=>setCreateError(null)} className="text-red-300 hover:text-red-100 text-xs">Dismiss</button>
+              </div>
             )}
           </div>
         )}

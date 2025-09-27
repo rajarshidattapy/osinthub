@@ -1,9 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ClerkProvider } from '@clerk/clerk-react';
-import App from './App'; // <-- Import your new App component
+import App from './App';
 import './index.css';
-// import './styles/token.css'; // Make sure tokens are imported
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 

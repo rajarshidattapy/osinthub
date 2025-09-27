@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from database import get_db, engine
 from models import Base
-from routers import repositories, merge_requests, users, files, search, upload_file, webhooks, commit_graph, chatbot,dashboard
+from routers import repositories, merge_requests, users, files, search, upload_file, webhooks, commit_graph, chatbot, dashboard, demo_seed, legal
 from auth import verify_clerk_token
 
 load_dotenv()
@@ -44,6 +44,8 @@ app.include_router(webhooks.router, tags=["webhooks"])
 app.include_router(commit_graph.router, prefix="/api", tags=["commit-graph"])
 app.include_router(chatbot.router, prefix="/api", tags=["chatbot"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(demo_seed.router, prefix="/api/demo", tags=["demo"])
+app.include_router(legal.router, prefix="/api/legal", tags=["legal"])
 @app.get("/")
 async def root():
     return {"message": "OSINT Collaboration Platform API"}

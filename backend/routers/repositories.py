@@ -5,7 +5,7 @@ from typing import List, Optional
 import logging
 
 from database import get_db
-from models import Repository as RepositoryModel, User as UserModel, RepositoryCollaborator
+from models import Repository as RepositoryModel, User as UserModel, RepositoryCollaborator, AuditEntry as AuditEntryModel
 from schemas import Repository, RepositoryCreate, RepositoryUpdate
 from auth import verify_clerk_token, contributor_required
 from audit import log_activity
@@ -154,14 +154,14 @@ async def get_repository(
                 )
         
         return repo
-
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting repository {repo_id}: {str(e)}")
+        logger.error(f"Error updating repository {repo_id}: {str(e)}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve repository"
+            detail="Failed to update repository"
         )
 
 
@@ -228,12 +228,48 @@ async def update_repository(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating repository {repo_id}: {str(e)}")
-        db.rollback()
+        logger.error(f"Error getting repository {repo_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update repository"
+            detail="Failed to retrieve repository"
         )
+
+@router.get("/{repo_id}/audit")
+async def list_repository_audit(
+    repo_id: str,
+    limit: int = 50,
+    current_user: UserModel = Depends(verify_clerk_token),
+    db: Session = Depends(get_db)
+):
+    """Return recent audit entries for a repository (Case History feed)."""
+    repo = db.query(RepositoryModel).filter(RepositoryModel.id == repo_id).first()
+    if not repo:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    # Basic access reuse: if private verify access
+    if repo.is_private and repo.owner_id != current_user.id:
+        is_collaborator = db.query(RepositoryCollaborator).filter(
+            RepositoryCollaborator.repository_id == repo_id,
+            RepositoryCollaborator.user_id == current_user.id
+        ).first()
+        if not is_collaborator:
+            raise HTTPException(status_code=403, detail="Access denied to private repository")
+    entries = (
+        db.query(AuditEntryModel)
+        .filter(AuditEntryModel.repository_id == repo_id)
+        .order_by(AuditEntryModel.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "id": e.id,
+            "action": e.action,
+            "details": e.details,
+            "created_at": e.created_at,
+            "user_id": e.user_id,
+        }
+        for e in entries
+    ]
 
 
 @router.delete("/{repo_id}")

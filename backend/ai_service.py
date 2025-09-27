@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, AsyncGenerator
 from dotenv import load_dotenv
 from document_parser import DocumentParser, DocumentChange
 import json
+import re
 
 load_dotenv()
 
@@ -15,8 +16,114 @@ class EnhancedAIService:
             raise ValueError("GOOGLE_API_KEY environment variable is required")
 
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(os.getenv("GOOGLE_GEMINI_MODEL", "gemini-pro"))
+        self.model = genai.GenerativeModel(os.getenv("GOOGLE_GEMINI_MODEL", "models/gemini-1.5-flash-8b-latest"))
         self.document_parser = DocumentParser()
+
+    # ===== Legal Domain Prototype Methods (mock now, AI later) =====
+    async def extract_clauses(self, text: str):
+        # Naive split by markdown headers; fallback to first 3 chunks
+        import re
+        headers = re.split(r'(?m)^#{1,3}\s+', text)
+        clauses_raw = [h.strip() for h in headers if h.strip()] or [text]
+        sample = clauses_raw[:5]
+        clauses = []
+        for idx, raw in enumerate(sample, start=1):
+            simplified = raw[:140] + ('...' if len(raw) > 140 else '')
+            risk_flags = []
+            lowered = raw.lower()
+            if 'late fee' in lowered:
+                risk_flags.append('late_fee_high')
+            if 'indemnify' in lowered:
+                risk_flags.append('indemnity')
+            clauses.append({
+                "id": idx,
+                "type": "termination" if 'terminate' in lowered else ("liability" if 'liability' in lowered or 'indemnify' in lowered else "general"),
+                "text": raw,
+                "simplified": simplified,
+                "risk_flags": risk_flags
+            })
+        return clauses
+
+    async def summarize_document(self, text: str):
+        # Estimate reading grade crudely by sentence/word ratio
+        import re
+        words = re.findall(r'\w+', text)
+        sentences = re.split(r'[.!?]+', text)
+        avg_sentence_len = (len(words) / max(1, len([s for s in sentences if s.strip()])))
+        # Rough mapping
+        if avg_sentence_len <= 10:
+            grade = 6
+        elif avg_sentence_len <= 16:
+            grade = 8
+        elif avg_sentence_len <= 22:
+            grade = 10
+        else:
+            grade = 12
+        summary = text[:300].strip().replace('\n', ' ')
+        if len(text) > 300:
+            summary += '...'
+        return {"summary": summary or "No content provided.", "reading_grade": grade}
+
+    async def score_risk(self, clauses):
+        alerts = []
+        for c in clauses:
+            for flag in c.get('risk_flags', []):
+                alerts.append({
+                    "clause_id": c['id'],
+                    "risk": flag,
+                    "severity": "high" if 'indemnity' in flag else ("medium" if 'late_fee' in flag else "low")
+                })
+        # Provide deterministic example if no flags
+        if not alerts and clauses:
+            alerts.append({"clause_id": clauses[0]['id'], "risk": "ambiguous_language", "severity": "low"})
+        return {"risk_alerts": alerts}
+
+    async def smart_review_change(self, original: str, proposed: str, context: str):
+        # Simple heuristic scoring
+        fidelity = 90 if len(proposed) > 0.6 * len(original) else 75
+        clarity = 95 if len(proposed) < len(original) else 80
+        completeness = 85
+        risk_alignment = 95
+        overall = int((fidelity + clarity + completeness + risk_alignment) / 4)
+        decision = "APPROVED" if overall >= 90 else ("NEEDS_REVIEW" if overall >= 80 else "REJECTED")
+        suggestions = []
+        if decision != "APPROVED":
+            suggestions.append("Verify no important dates were removed")
+        reasoning = "Automated heuristic review (mock). Replace with AI reasoning output in production."
+        return {
+            "decision": decision,
+            "fidelity_score": fidelity,
+            "clarity_score": clarity,
+            "completeness_score": completeness,
+            "risk_alignment_score": risk_alignment,
+            "overall_score": overall,
+            "omitted_risk_items": [],
+            "concerns": [],
+            "suggestions": suggestions,
+            "reasoning": reasoning
+        }
+
+    async def validate_merge_request(
+        self,
+        title: str,
+        description: str,
+        file_changes: List[Dict],
+        source_repo_description: str,
+        target_repo_description: str
+    ) -> Dict:
+        """Backward-compatible wrapper used by routers.
+
+        Currently delegates to validate_merge_request_with_documents without document diff enrichment.
+        Keeping the simple signature to avoid changing existing router code.
+        """
+        return await self.validate_merge_request_with_documents(
+            title=title,
+            description=description,
+            file_changes=file_changes,
+            source_repo_description=source_repo_description,
+            target_repo_description=target_repo_description,
+            document_changes=None
+        )
 
     async def validate_merge_request_with_documents(
             self,

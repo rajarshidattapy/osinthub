@@ -30,7 +30,9 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
   onFork,
   onViewMergeRequests
 }) => {
-  const [selectedFile, setSelectedFile] = useState(repository.files[0]);
+  // Guard: repository.files may be empty until files are loaded or repo initialized
+  const initialFile = repository.files && repository.files.length > 0 ? repository.files[0] : undefined;
+  const [selectedFile, setSelectedFile] = useState(initialFile);
   const [activeTab, setActiveTab] = useState<'code' | 'issues' | 'pulls' | 'security' | 'insights' | 'commits'>('code');
   const [showCommitGraph, setShowCommitGraph] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -116,18 +118,18 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
         {/* Navigation Tabs */}
         <div className="border-b border-gray-700 mb-6">
           <nav className="flex space-x-8">
-            {[
+            {([
               { id: 'code', label: 'Code', icon: FileText },
               { id: 'issues', label: 'Issues', count: 0 },
               { id: 'pulls', label: 'Pull Requests', count: 1 },
               { id: 'commits', label: 'Commits', icon: GitCommit },
               { id: 'security', label: 'Security' },
               { id: 'insights', label: 'Insights' }
-            ].map(tab => (
+            ] as const).map(tab => (
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id as any);
+                  setActiveTab(tab.id as 'code' | 'issues' | 'pulls' | 'security' | 'insights' | 'commits');
                   if (tab.id === 'pulls') onViewMergeRequests();
                 }}
                 className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
@@ -136,9 +138,9 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                     : 'border-transparent text-gray-400 hover:text-white'
                 }`}
               >
-                {tab.icon && <tab.icon className="w-4 h-4" />}
+                {'icon' in tab && tab.icon && <tab.icon className="w-4 h-4" />}
                 <span>{tab.label}</span>
-                {tab.count !== undefined && (
+                {'count' in tab && tab.count !== undefined && (
                   <span className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">
                     {tab.count}
                   </span>
@@ -152,15 +154,27 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
         {activeTab === 'code' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <FileExplorer 
-                files={repository.files} 
-                selectedFile={selectedFile}
-                onFileSelect={setSelectedFile}
-              />
+              {repository.files && repository.files.length > 0 ? (
+                <FileExplorer 
+                  files={repository.files} 
+                  selectedFile={selectedFile}
+                  onFileSelect={setSelectedFile}
+                />
+              ) : (
+                <div className="text-gray-400 text-sm p-4 border border-gray-700 rounded-lg bg-gray-800">
+                  No files in this repository yet.
+                </div>
+              )}
             </div>
             
             <div className="lg:col-span-2">
-              <FileEditor file={selectedFile} />
+              {selectedFile ? (
+                <FileEditor file={selectedFile} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500 text-sm border border-dashed border-gray-700 rounded-lg p-8 bg-gray-800">
+                  Select or add a file to begin.
+                </div>
+              )}
             </div>
           </div>
         )}

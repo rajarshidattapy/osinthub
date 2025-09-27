@@ -159,8 +159,14 @@ class ApiService {
       method: 'POST',
       headers,
     });
-    if (!response.ok) throw new Error('Failed to merge request');
-    return response.json();
+    const data = await response.json().catch(() => undefined);
+    if (!response.ok) {
+      const message = typeof data === 'object' && data?.detail?.message ? data.detail.message : (data?.detail || 'Failed to merge request');
+      const error = new Error(message) as any;
+      if (data?.detail) error.detail = data.detail;
+      throw error;
+    }
+    return data;
   }
 
   async closeMergeRequest(id: string, getToken: () => Promise<string | null>) {
@@ -169,8 +175,30 @@ class ApiService {
       method: 'POST',
       headers,
     });
-    if (!response.ok) throw new Error('Failed to close merge request');
-    return response.json();
+    const data = await response.json().catch(() => undefined);
+    if (!response.ok) {
+      const message = data?.detail || 'Failed to close merge request';
+      const error = new Error(message) as any;
+      if (data?.detail) error.detail = data.detail;
+      throw error;
+    }
+    return data;
+  }
+
+  async validateMergeRequest(id: string, getToken: () => Promise<string | null>) {
+    const headers = await this.getAuthHeaders(getToken);
+    const response = await fetch(`${API_BASE_URL}/merge-requests/${id}/validate`, {
+      method: 'POST',
+      headers,
+    });
+    const data = await response.json().catch(() => undefined);
+    if (!response.ok) {
+      const message = data?.detail || 'Failed to validate merge request';
+      const error = new Error(message) as any;
+      if (data?.detail) error.detail = data.detail;
+      throw error;
+    }
+    return data;
   }
 
   // Commit Graph

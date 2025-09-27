@@ -43,16 +43,22 @@ async def notify_merge_request_status(webhook_data: dict, background_tasks: Back
     """
     to_email = webhook_data.get('user_email')
     mr_id = webhook_data.get('merge_request_id')
-    status = webhook_data.get('status')
+    mr_status = webhook_data.get('status')
     repo_name = webhook_data.get('repository_name')
     title = webhook_data.get('title')
-    if to_email and mr_id and status and repo_name and title:
+    if to_email and mr_id and mr_status and repo_name and title:
         background_tasks.add_task(
-            send_merge_request_status_email, to_email, mr_id, status, repo_name, title
+            send_merge_request_status_email, to_email, mr_id, mr_status, repo_name, title
         )
     else:
         print("Missing required fields for sending email notification.")
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content={"message": "Notification processed"}
+        content={
+            "message": "Notification processed",
+            "merge_request_id": mr_id,
+            "status": mr_status,
+            "repository_name": repo_name,
+            "title": title
+        }
     )

@@ -1,24 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ArrowLeft, GitPullRequest, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { MergeRequestCard } from './MergeRequestCard';
-import { mergeRequests } from '../../data/mockData';
 import { MergeRequest } from '../../types';
 
 interface MergeRequestListProps {
   onBack: () => void;
   onSelectMergeRequest: (mr: MergeRequest) => void;
+  mergeRequests: MergeRequest[];
+  onCreateMergeRequest: () => void;
 }
 
 export const MergeRequestList: React.FC<MergeRequestListProps> = ({ 
-  onBack, 
-  onSelectMergeRequest 
+  onBack,
+  onSelectMergeRequest,
+  mergeRequests,
+  onCreateMergeRequest
 }) => {
   const [filter, setFilter] = useState<'all' | 'open' | 'closed' | 'merged'>('all');
 
-  const filteredMRs = mergeRequests.filter(mr => {
-    if (filter === 'all') return true;
-    return mr.status === filter;
-  });
+  const filteredMRs = useMemo(() => {
+    return mergeRequests.filter(mr => filter === 'all' ? true : mr.status === filter);
+  }, [mergeRequests, filter]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -29,9 +31,7 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
     }
   };
 
-  const getStatusCount = (status: string) => {
-    return mergeRequests.filter(mr => mr.status === status).length;
-  };
+  const getStatusCount = (status: string) => mergeRequests.filter(mr => mr.status === status).length;
 
   return (
     <div className="app-container">
@@ -55,7 +55,7 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
             <p className="page-subtitle">Review and merge intelligence contributions</p>
           </div>
           
-          <button className="btn-success flex items-center space-x-2">
+          <button onClick={onCreateMergeRequest} className="btn-success flex items-center space-x-2">
             <GitPullRequest className="w-4 h-4" />
             <span>New Pull Request</span>
           </button>
@@ -72,7 +72,7 @@ export const MergeRequestList: React.FC<MergeRequestListProps> = ({
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setFilter(tab.id as any)}
+                onClick={() => setFilter(tab.id as 'all'|'open'|'closed'|'merged')}
                 className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
                   filter === tab.id 
                     ? 'border-blue-500 text-fg' 
