@@ -1,0 +1,17 @@
+# Render service manifest for deploying the backend via Docker
+# See: https://render.com/docs/deploy#deploy-with-docker
+services:
+  - type: web
+    name: osinthub-backend
+    env: docker
+    branch: main
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: ALLOWED_ORIGINS
+        # Example: include your Vercel frontend and localhost for local dev
+        value: "https://osinthub-delta.vercel.app,http://localhost:5173,http://localhost:3000"
+    # Port Render will route to the container. Uvicorn listens on 8000 by default.
+    # You can override environment variables in the Render dashboard (DATABASE_URL, CLIFF_KEYS, etc.)
+    plan: starter
