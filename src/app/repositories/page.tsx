@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { authenticatedFetch } from '@/lib/api';
+import { API_BASE } from '@/lib/config';
 import { Plus, Search, Filter, GitBranch, Users, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { useLayout } from '@/contexts/LayoutContext';
 import { CreateRepositoryModal } from '@/components/CreateRepository/CreateRepositoryModal';
@@ -46,7 +47,7 @@ export default function RepositoriesPage() {
       try {
         const token = await getToken();
         if (!token) return;
-        const data = await authenticatedFetch('http://localhost:8000/api/repositories/', token);
+  const data = await authenticatedFetch(`${API_BASE}/api/repositories/`, token);
         setRepositories(data);
       } catch (error) {
         console.error("Failed to fetch repositories", error);
@@ -110,7 +111,7 @@ export default function RepositoriesPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error('No auth token');
-      const res = await fetch('http://localhost:8000/api/repositories/', {
+  const res = await fetch(`${API_BASE}/api/repositories/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

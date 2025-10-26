@@ -24,6 +24,7 @@ interface DashboardData {
 }
 import { useAuth } from '@clerk/clerk-react';
 import { authenticatedFetch } from '@/lib/api';
+import { API_BASE } from '@/lib/config';
 
 import { KpiCard } from "@/components/kpi-card";
 import { ActivityTimeline } from "@/components/activity-timeline";
@@ -53,7 +54,7 @@ export default function DashboardHomePage() {
         if (!token) throw new Error('Not authenticated');
         while (attempts < maxAttempts) {
           try {
-            const raw = await authenticatedFetch('http://localhost:8000/api/dashboard/stats', token);
+            const raw = await authenticatedFetch(`${API_BASE}/api/dashboard/stats`, token);
             // Normalize activity types & investigator performance shape
             const normalized: DashboardData = {
               ...raw,

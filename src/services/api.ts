@@ -1,6 +1,8 @@
 import { useAuth } from '@clerk/clerk-react';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+// Read API base from Vite env var for deployed frontend, fall back to localhost for dev
+const VITE_API = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL) : '';
+const API_BASE_URL = VITE_API ? `${VITE_API.replace(/\/*$/, '')}/api` : 'http://localhost:8000/api';
 
 class ApiService {
   private getAuthHeaders = async (getToken: () => Promise<string | null>) => {

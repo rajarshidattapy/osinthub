@@ -7,6 +7,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { MergeRequestDetail } from "@/components/MergeRequest/MergeRequestDetail";
 import { MergeRequest, Repository, User } from '@/types';
 import { apiService } from '@/services/api';
+import { API_BASE } from '@/lib/config';
 import { useLayout } from '@/contexts/LayoutContext';
 
 export default function SingleMergeRequestPage() {
@@ -115,7 +116,7 @@ export default function SingleMergeRequestPage() {
       setIsLoading(true);
       try {
         const token = await getToken();
-        const res = await fetch(`http://localhost:8000/api/merge-requests/${mrId}`, {
+        const res = await fetch(`${API_BASE}/api/merge-requests/${mrId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Failed to fetch merge request details");
@@ -141,7 +142,7 @@ export default function SingleMergeRequestPage() {
     if (!mrId) return;
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/merge-requests/${mrId}`, {
+      const res = await fetch(`${API_BASE}/api/merge-requests/${mrId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

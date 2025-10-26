@@ -7,6 +7,7 @@ import { useLayout } from '@/contexts/LayoutContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { authenticatedFetch } from '@/lib/api';
+import { API_BASE } from '@/lib/config';
 import { MergeRequestList } from "@/components/MergeRequest/MergeRequestList";
 import { CreateMergeRequestModal } from "@/components/MergeRequest/CreateMergeRequestModal";
 import { MergeRequest, Repository, User } from '@/types';
@@ -45,8 +46,8 @@ export default function MergeRequestsPage() {
 
         // Fetch both merge requests and repositories in parallel
         const [mrRaw, repoRaw] = await Promise.all([
-          authenticatedFetch('http://localhost:8000/api/merge-requests', token),
-          authenticatedFetch('http://localhost:8000/api/repositories', token)
+          authenticatedFetch(`${API_BASE}/api/merge-requests`, token),
+          authenticatedFetch(`${API_BASE}/api/repositories`, token)
         ]);
 
         // Map backend repository shape to frontend Repository (lightweight; files loaded elsewhere)
@@ -155,7 +156,7 @@ export default function MergeRequestsPage() {
   const handleSubmitMergeRequest = async (data: CreateMRPayload) => {
     try {
       const token = await getToken();
-      const newMRRaw = await authenticatedFetch('http://localhost:8000/api/merge-requests', token, {
+      const newMRRaw = await authenticatedFetch(`${API_BASE}/api/merge-requests`, token, {
         method: 'POST',
         body: JSON.stringify(data),
       });

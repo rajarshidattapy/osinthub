@@ -88,38 +88,44 @@ export const repositoryApi = {
     if (params?.is_private !== undefined) queryParams.append("is_private", params.is_private.toString());
     if (params?.owner_id) queryParams.append("owner_id", params.owner_id);
 
-    const url = `http://localhost:8000/api/repositories${
+    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL).replace(/\/*$/, '') : 'http://localhost:8000';
+    const url = `${API_BASE}/api/repositories${
       queryParams.toString() ? `?${queryParams.toString()}` : ""
     }`;
     return authenticatedFetch(url, token);
   },
 
   create: async (token: string, repoData: any) => {
-    return authenticatedFetch("http://localhost:8000/api/repositories", token, {
+    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL).replace(/\/*$/, '') : 'http://localhost:8000';
+    return authenticatedFetch(`${API_BASE}/api/repositories`, token, {
       method: "POST",
       body: JSON.stringify(repoData),
     });
   },
 
   get: async (token: string, repoId: string) => {
-    return authenticatedFetch(`http://localhost:8000/api/repositories/${repoId}`, token);
+    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL).replace(/\/*$/, '') : 'http://localhost:8000';
+    return authenticatedFetch(`${API_BASE}/api/repositories/${repoId}`, token);
   },
 
   update: async (token: string, repoId: string, updateData: any) => {
-    return authenticatedFetch(`http://localhost:8000/api/repositories/${repoId}`, token, {
+    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL).replace(/\/*$/, '') : 'http://localhost:8000';
+    return authenticatedFetch(`${API_BASE}/api/repositories/${repoId}`, token, {
       method: "PUT",
       body: JSON.stringify(updateData),
     });
   },
 
   delete: async (token: string, repoId: string) => {
-    return authenticatedFetch(`http://localhost:8000/api/repositories/${repoId}`, token, {
+    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL).replace(/\/*$/, '') : 'http://localhost:8000';
+    return authenticatedFetch(`${API_BASE}/api/repositories/${repoId}`, token, {
       method: "DELETE",
     });
   },
 
   fork: async (token: string, repoId: string) => {
-    return authenticatedFetch(`http://localhost:8000/api/repositories/${repoId}/fork`, token, {
+    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) ? String(import.meta.env.VITE_API_URL).replace(/\/*$/, '') : 'http://localhost:8000';
+    return authenticatedFetch(`${API_BASE}/api/repositories/${repoId}/fork`, token, {
       method: "POST",
     });
   },
