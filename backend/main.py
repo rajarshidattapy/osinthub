@@ -23,8 +23,19 @@ app = FastAPI(
 )
 
 # CORS middleware
-allowed = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+allowed = os.getenv("ALLOWED_ORIGINS","https://osinthub-delta.vercel.app/,http://localhost:5173,http://localhost:3000")
 allow_origins = [o.strip() for o in allowed.split(",") if o.strip()]
+
+# Also support a single FRONTEND_URL / FE_URL env var for convenience
+frontend_url = os.getenv("FE_URL") or os.getenv("FRONTEND_URL") or os.getenv("FE_URLS")
+if frontend_url:
+    # allow FE_URL to contain comma-separated list as well
+    for u in str(frontend_url).split(","):
+        u = u.strip()
+        if u and u not in allow_origins:
+            allow_origins.append(u)
+
+print(f"CORS allow_origins: {allow_origins}")
 
 app.add_middleware(
     CORSMiddleware,
