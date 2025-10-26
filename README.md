@@ -1,8 +1,8 @@
-# Google Generative AI Exchange Hackathon: OSINT Hub
-
-### 🎯 Problem Statement: Collaborative Intelligence Documentation Platform
+# OSINT Hub: Collaborative Intelligence Documentation Platform
 
 OSINT Hub is a comprehensive platform that enables cybersecurity analysts, journalists, and OSINT researchers to collaboratively investigate, document, and refine intelligence in a secure, version-controlled environment. The platform leverages AI to ensure quality and trust by validating merge requests and document credibility before they're accepted.
+
+# Backend URL: https://osinthub-tny5.onrender.com/
 
 ### 🌟 Core Features
 
@@ -11,20 +11,6 @@ OSINT Hub is a comprehensive platform that enables cybersecurity analysts, journ
 - **Repository Templates**: Pre-built templates for OSINT investigations, threat intelligence, and incident response
 - **Fork & Clone**: Fork existing investigations to create derivative cases
 - **Repository Statistics**: Track commits, file changes, and collaboration metrics
-
-#### **Document Processing & Storage**
-- **Multi-Format Support**: PDF, DOCX, DOC, TXT, Markdown, JSON, CSV file processing
-- **Intelligent Text Extraction**: Advanced text extraction using PyMuPDF and Mammoth
-- **Document Metadata**: Automatic extraction of creation dates, authors, and file properties
-- **File Versioning**: Complete version history with diff tracking for all uploaded documents
-- **Batch Upload**: Upload multiple files simultaneously with progress tracking
-
-#### **Collaborative Workflow**
-- **Advanced File Editor**: Syntax highlighting, markdown rendering, and JSON formatting
-- **File Explorer**: Directory-based navigation with file type icons and metadata display
-- **Merge Requests**: Submit proposed changes with detailed diff visualization
-- **Code Review System**: Line-by-line commenting and discussion threads
-- **Role-Based Permissions**: Admin, analyst, contributor, and viewer roles with granular access control
 
 #### **AI-Powered Intelligence**
 - **Document Credibility Analysis**: AI assessment of source reliability and information quality
