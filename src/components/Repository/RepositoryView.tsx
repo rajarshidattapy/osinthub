@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  GitFork, 
-  Eye,  
-  FileText, 
+import {
+  GitFork,
+  Eye,
+  FileText,
   Calendar,
   Users,
   Globe,
@@ -24,9 +24,9 @@ interface RepositoryViewProps {
   onViewMergeRequests: () => void;
 }
 
-export const RepositoryView: React.FC<RepositoryViewProps> = ({ 
-  repository, 
-  onBack, 
+export const RepositoryView: React.FC<RepositoryViewProps> = ({
+  repository,
+  onBack,
   onFork,
   onViewMergeRequests
 }) => {
@@ -53,21 +53,21 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <button 
+              <button
                 onClick={onBack}
                 className="text-blue-400 hover:text-blue-300 text-sm"
               >
-                ← Back to repositories
+                ← Back to cases
               </button>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <button className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors">
                 <Eye className="w-4 h-4" />
                 <span>Watch</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => onFork(repository)}
                 className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm flex items-center space-x-1 transition-colors"
               >
@@ -79,7 +79,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
           </div>
 
           <div className="flex items-center space-x-3 mb-4">
-            <img 
+            <img
               src={repository.owner.avatar}
               alt={repository.owner.username}
               className="w-8 h-8 rounded-full"
@@ -121,7 +121,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
             {([
               { id: 'code', label: 'Code', icon: FileText },
               { id: 'issues', label: 'Issues', count: 0 },
-              { id: 'pulls', label: 'Pull Requests', count: 1 },
+              { id: 'pulls', label: 'Joining Requests', count: 1 },
               { id: 'commits', label: 'Commits', icon: GitCommit },
               { id: 'security', label: 'Security' },
               { id: 'insights', label: 'Insights' }
@@ -132,11 +132,10 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                   setActiveTab(tab.id as 'code' | 'issues' | 'pulls' | 'security' | 'insights' | 'commits');
                   if (tab.id === 'pulls') onViewMergeRequests();
                 }}
-                className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${
-                  activeTab === tab.id 
-                    ? 'border-orange-500 text-white' 
+                className={`flex items-center space-x-2 pb-3 border-b-2 transition-colors ${activeTab === tab.id
+                    ? 'border-orange-500 text-white'
                     : 'border-transparent text-gray-400 hover:text-white'
-                }`}
+                  }`}
               >
                 {'icon' in tab && tab.icon && <tab.icon className="w-4 h-4" />}
                 <span>{tab.label}</span>
@@ -155,8 +154,8 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
               {repository.files && repository.files.length > 0 ? (
-                <FileExplorer 
-                  files={repository.files} 
+                <FileExplorer
+                  files={repository.files}
                   selectedFile={selectedFile}
                   onFileSelect={setSelectedFile}
                 />
@@ -166,7 +165,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                 </div>
               )}
             </div>
-            
+
             <div className="lg:col-span-2">
               {selectedFile ? (
                 <FileEditor file={selectedFile} />
@@ -233,7 +232,7 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                   </button>
                 </div>
               </div>
-              
+
               {/* Commit List */}
               <div className="space-y-3">
                 {(repository.id === '2' ? commits2 : commits).map((commit) => (
@@ -252,8 +251,8 @@ export const RepositoryView: React.FC<RepositoryViewProps> = ({
                         </div>
                         <h4 className="text-white font-medium mb-1">{commit.message}</h4>
                         <div className="flex items-center space-x-2 text-sm text-gray-400">
-                          <img 
-                            src={commit.author.avatar} 
+                          <img
+                            src={commit.author.avatar}
                             alt={commit.author.username}
                             className="w-4 h-4 rounded-full"
                           />

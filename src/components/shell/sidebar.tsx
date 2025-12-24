@@ -8,8 +8,8 @@ import { useState } from "react";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: Home }, 
-  { to: "/repositories", label: "Repositories", icon: FolderGit2 },
-  { to: "/merge-requests", label: "Merge Requests", icon: GitPullRequest },
+  { to: "/repositories", label: "Cases", icon: FolderGit2 },
+  { to: "/merge-requests", label: "Joining Requests", icon: GitPullRequest },
   { to: "/activity", label: "Activity", icon: Layers3 },
 ];
 

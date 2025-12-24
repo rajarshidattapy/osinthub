@@ -1,32 +1,32 @@
 // frontend/src/components/ui/use-cases-section.tsx
 
 import { useState, useEffect } from 'react';
-import { ChevronRight} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Our defined Use Cases for OSINT Hub
 const useCases = [
-    {
-      id: 1,
-      
-      title: "For Cybersecurity Analysts",
-      description: "Map adversary infrastructure, catalog indicators of compromise (IoCs), and collaborate on threat intelligence in a secure, version-controlled environment with a complete audit trail.",
-      image: "/Dashboard.png"
-    },
-    {
-      id: 2,
-     
-      title: "For Investigative Journalists",
-      description: "Collaboratively build case files, verify sources, and maintain the integrity of your evidence. Our AI validation feature helps ensure the accuracy and relevance of contributed information.",
-      image: "/Dashboard.png"
-    },
-    {
-      id: 3,
-     
-      title: "For Corporate Security",
-      description: "Conduct internal investigations, perform due diligence, and monitor brand risks with a structured workflow. Role-based access ensures sensitive data is handled with appropriate discretion.",
-      image: "/Dashboard.png"
-    }
+  {
+    id: 1,
+
+    title: "For Lawyers and Judges",
+    description: "India has a complex legal system with a range of laws and regulations that govern the conduct of lawyers and judges. OSINT Hub can help lawyers and judges stay up to date with the AI powered searches, explanations and trends in their field.",
+    image: "/Dashboard.png"
+  },
+  {
+    id: 2,
+
+    title: "For Investigative Journalists",
+    description: "Collaboratively build case files, verify sources, and maintain the integrity of your evidence. Our AI validation feature helps ensure the accuracy and relevance of contributed information.",
+    image: "/Dashboard.png"
+  },
+  {
+    id: 3,
+
+    title: "For Corporate Security",
+    description: "Conduct internal investigations, perform due diligence, and monitor brand risks with a structured workflow. Role-based access ensures sensitive data is handled with appropriate discretion.",
+    image: "/Dashboard.png"
+  }
 ];
 
 export function UseCasesSection() {
@@ -83,11 +83,10 @@ export function UseCasesSection() {
                 return (
                   <div
                     key={feature.id}
-                    className={`relative flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-300 ${
-                      isActive
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                        : "text-gray-300 hover:bg-[#1C2128]"
-                    }`}
+                    className={`relative flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-300 ${isActive
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                      : "text-gray-300 hover:bg-[#1C2128]"
+                      }`}
                     onClick={() => handleFeatureClick(index)}
                   >
                     {/* Title only, no icons */}

@@ -25,11 +25,11 @@ export default function MergeRequestsPage() {
   const navigate = useNavigate();
   const { getToken, isLoaded } = useAuth();
   const { setTitle } = useLayout();
-  
+
   // State for data
   const [mergeRequests, setMergeRequests] = useState<MergeRequest[]>([]);
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  
+
   // State for UI
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function MergeRequestsPage() {
 
   useEffect(() => {
     if (!isLoaded) return;
-    setTitle('Merge Requests');
+    setTitle('Joining Requests');
 
     const fetchData = async () => {
       try {
@@ -54,33 +54,33 @@ export default function MergeRequestsPage() {
         const mapRepo = (r: RawRepository): Repository => ({
           id: r.id || 'unknown-repo',
           name: r.name || 'unknown',
-            description: r.description || '',
-            owner: {
-              id: r.owner?.id || r.owner_id || 'unknown',
-              username: r.owner?.username || 'unknown',
-              avatar: r.owner?.avatar || '/assets/person2.webp',
-              role: (r.owner?.role || 'contributor') as User['role'],
-              email: r.owner?.email || 'unknown@example.com'
-            },
-            isPrivate: !!r.is_private,
-            createdAt: r.created_at || new Date().toISOString(),
-            updatedAt: r.updated_at || r.created_at || new Date().toISOString(),
-            forkedFrom: undefined,
-            forkCount: r.fork_count || 0,
-            files: [],
-            collaborators: (r.collaborators || []).map((c: RawCollaborator) => ({
-              id: c.user?.id || c.user_id || 'unknown-user',
-              username: c.user?.username || 'unknown',
-              avatar: c.user?.avatar || '/assets/person2.webp',
-              role: (c.user?.role || 'contributor') as User['role'],
-              email: c.user?.email || 'unknown@example.com'
-            })),
+          description: r.description || '',
+          owner: {
+            id: r.owner?.id || r.owner_id || 'unknown',
+            username: r.owner?.username || 'unknown',
+            avatar: r.owner?.avatar || '/assets/person2.webp',
+            role: (r.owner?.role || 'contributor') as User['role'],
+            email: r.owner?.email || 'unknown@example.com'
+          },
+          isPrivate: !!r.is_private,
+          createdAt: r.created_at || new Date().toISOString(),
+          updatedAt: r.updated_at || r.created_at || new Date().toISOString(),
+          forkedFrom: undefined,
+          forkCount: r.fork_count || 0,
+          files: [],
+          collaborators: (r.collaborators || []).map((c: RawCollaborator) => ({
+            id: c.user?.id || c.user_id || 'unknown-user',
+            username: c.user?.username || 'unknown',
+            avatar: c.user?.avatar || '/assets/person2.webp',
+            role: (c.user?.role || 'contributor') as User['role'],
+            email: c.user?.email || 'unknown@example.com'
+          })),
         });
 
         const repositoriesMapped: Repository[] = ((repoRaw as RawRepository[]) || []).map(mapRepo);
 
-  const allowedStatus = new Set(['open','closed','merged','draft']);
-  const allowedAIStatus = new Set(['pending','approved','rejected','needs_review']);
+        const allowedStatus = new Set(['open', 'closed', 'merged', 'draft']);
+        const allowedAIStatus = new Set(['pending', 'approved', 'rejected', 'needs_review']);
         const mergeRequestsMapped: MergeRequest[] = ((mrRaw as RawMergeRequest[]) || []).map((m: RawMergeRequest) => ({
           id: m.id,
           title: m.title,
@@ -107,11 +107,11 @@ export default function MergeRequestsPage() {
           createdAt: m.created_at || new Date().toISOString(),
           updatedAt: m.updated_at || m.created_at || new Date().toISOString(),
           changes: (m.file_changes || m.changes || []).map((c: RawFileChange) => {
-            const allowedChange = new Set(['added','modified','deleted']);
+            const allowedChange = new Set(['added', 'modified', 'deleted']);
             const ct = (c.change_type || '').toLowerCase();
             return {
               file: c.file_path || c.file || 'unknown',
-              type: (allowedChange.has(ct) ? ct : 'modified') as 'added'|'modified'|'deleted',
+              type: (allowedChange.has(ct) ? ct : 'modified') as 'added' | 'modified' | 'deleted',
               additions: c.additions || 0,
               deletions: c.deletions || 0,
               diff: c.diff_content || c.diff || ''
@@ -198,7 +198,7 @@ export default function MergeRequestsPage() {
   };
 
   if (isLoading) {
-    return <p className="p-6 text-gray-400">Loading merge requests...</p>;
+    return <p className="p-6 text-gray-400">Loading joining requests...</p>;
   }
 
   if (error) {

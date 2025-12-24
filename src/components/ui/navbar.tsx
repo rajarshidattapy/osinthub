@@ -10,7 +10,7 @@ const navLinks = [
   { name: "Features", href: "#features" },
   { name: "How It Works", href: "#how-it-works" },
   { name: "Docs", href: "/docs" },
-  { name: "Community", href: "https://github.com/AdityaP700", external: true },
+  { name: "Community", href: "https://github.com/rajarshidattapy/osinthub", external: true },
 ]
 
 export function LandingNavbar() {
@@ -23,7 +23,7 @@ export function LandingNavbar() {
         <div className="flex items-center justify-between px-6 py-3 
                         bg-gray-900/50 backdrop-blur-xl border border-white/10 
                         rounded-full shadow-lg w-full max-w-6xl">
-          
+
           {/* Logo */}
           <motion.div
             className="mr-6"
@@ -31,13 +31,13 @@ export function LandingNavbar() {
             transition={{ duration: 0.3 }}
           >
             <Link to="/" className="flex items-center space-x-3">
-<img
-    src="/ui.png"
-    alt="OSINT Hub Logo"
-    className="w-10 h-8 drop-shadow-md"
-  /><span className="text-xl font-bold tracking-wide hidden sm:block text-white">
-  OSINT Hub
-</span>
+              <img
+                src="/ui.png"
+                alt="OSINT Hub Logo"
+                className="w-10 h-8 drop-shadow-md"
+              /><span className="text-xl font-bold tracking-wide hidden sm:block text-white">
+                OSINT Hub
+              </span>
 
             </Link>
           </motion.div>
@@ -48,12 +48,12 @@ export function LandingNavbar() {
               <motion.div key={item.name} whileHover={{ scale: 1.08 }}>
                 {item.external ? (
                   <a href={item.href} target="_blank" rel="noopener noreferrer"
-                     className="text-sm text-gray-300 hover:text-white transition-colors font-medium">
+                    className="text-sm text-gray-300 hover:text-white transition-colors font-medium">
                     {item.name}
                   </a>
                 ) : (
                   <a href={item.href}
-                     className="text-sm text-gray-300 hover:text-white transition-colors font-medium">
+                    className="text-sm text-gray-300 hover:text-white transition-colors font-medium">
                     {item.name}
                   </a>
                 )}
@@ -63,16 +63,16 @@ export function LandingNavbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="https://github.com/AdityaP700"
-               target="_blank"
-               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-200 border border-gray-700 rounded-full hover:border-indigo-500 transition-colors">
+            <a href="https://github.com/rajarshidattapy/osinthub"
+              target="_blank"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-200 border border-gray-700 rounded-full hover:border-indigo-500 transition-colors">
               <Github className="w-4 h-4" /> GitHub
             </a>
 
             <SignedIn>
               <div className="flex items-center space-x-4">
                 <Link to="/dashboard"
-                      className="inline-flex items-center justify-center px-4 py-2 
+                  className="inline-flex items-center justify-center px-4 py-2 
                                  text-sm text-white bg-gradient-to-r from-indigo-600 to-blue-600 
                                  rounded-full hover:opacity-90 transition-colors shadow-lg">
                   Dashboard
@@ -128,12 +128,12 @@ export function LandingNavbar() {
                   >
                     {item.external ? (
                       <a href={item.href} target="_blank" rel="noopener noreferrer"
-                         className="text-lg text-white font-medium" onClick={toggleMenu}>
+                        className="text-lg text-white font-medium" onClick={toggleMenu}>
                         {item.name}
                       </a>
                     ) : (
                       <a href={item.href}
-                         className="text-lg text-white font-medium" onClick={toggleMenu}>
+                        className="text-lg text-white font-medium" onClick={toggleMenu}>
                         {item.name}
                       </a>
                     )}
@@ -141,9 +141,9 @@ export function LandingNavbar() {
                 ))}
 
                 <div className="pt-6 space-y-4">
-                  <a href="https://github.com/AdityaP700"
-                     target="_blank"
-                     className="flex items-center justify-center gap-2 w-full px-5 py-3 
+                  <a href="https://github.com/rajarshidattapy/osinthub"
+                    target="_blank"
+                    className="flex items-center justify-center gap-2 w-full px-5 py-3 
                                 text-base text-gray-200 border border-gray-700 rounded-full 
                                 hover:border-indigo-500 transition-colors">
                     <Github className="w-5 h-5" /> GitHub
@@ -161,10 +161,10 @@ export function LandingNavbar() {
 
                   <SignedIn>
                     <Link to="/dashboard"
-                          className="inline-flex items-center justify-center w-full px-5 py-3 
+                      className="inline-flex items-center justify-center w-full px-5 py-3 
                                      text-base text-white bg-gradient-to-r from-indigo-600 to-blue-600 
                                      rounded-full hover:opacity-90 transition-colors shadow-lg"
-                          onClick={toggleMenu}>
+                      onClick={toggleMenu}>
                       Dashboard
                     </Link>
                   </SignedIn>
