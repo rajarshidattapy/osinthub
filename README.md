@@ -1,6 +1,6 @@
 # 🕵️‍♂️ OSINT Hub
 
-> **The GitHub for Legal and IntelligenceOperations.**
+> **The GitHub for Legal and Intelligence Operations.**
 > *Collaborative, secure, and AI-powered investigations for the modern professional.*
 
 ---
